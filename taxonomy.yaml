@@ -65,22 +65,39 @@ themes:
     exclude:
       - industry self-regulation announcements without substance
 
-# Feeds polled first each run (RSS / Atom / JSON). Dead feeds are skipped.
-# TODO: verify each URL and add more (journals, org blogs, preprint categories,
-# funder pages, job boards) before first run.
+# Feeds polled first each run (RSS / Atom). Dead feeds are skipped at runtime.
+# All URLs below verified resolving + non-empty on 2026-09-04. Most are broad org
+# feeds — the discovery step filters by theme include/exclude and the date window.
+# Add narrower feeds (specific journals, funder pages, job boards) as they're found.
 seeds:
   climate-justice:
-    - https://www.climatechange.ai/blog/index.xml
     - https://www.carbonbrief.org/feed/
+    - https://www.climatechangenews.com/feed/
+    - https://grist.org/feed/
   ai-human-rights:
     - https://algorithmwatch.org/en/feed/
     - https://www.accessnow.org/feed/
-    - https://www.adalovelaceinstitute.org/feed/
-    - https://ainowinstitute.org/feed/
+    - https://themarkup.org/feeds/rss.xml
+    - https://edri.org/feed/
+    - https://www.eff.org/rss/updates.xml
+    - https://cdt.org/feed/
+    - https://epic.org/feed/
+    - https://www.statewatch.org/rss/
+    - https://privacyinternational.org/rss.xml
+    - https://export.arxiv.org/rss/cs.CY   # arXiv Computers & Society
   livable-planet:
-    - http://export.arxiv.org/rss/cs.CY
+    - https://www.climatechange.ai/blog/feed.xml
+    - https://earthobservatory.nasa.gov/feeds/earth-observatory.rss
+    - https://www.esa.int/rssfeed/Our_Activities/Observing_the_Earth
+    - https://carbonplan.org/blog/rss.xml
   ai-governance:
     - https://artificialintelligenceact.eu/feed/
+    - https://techpolicy.press/rss/feed.xml
+    - https://ainowinstitute.org/feed/
+
+# No working RSS found (2026-09-04) — reach via web search instead:
+#   Ada Lovelace Institute (WP feed is empty), Stanford HAI, Tech Policy Press /feed,
+#   Brookings AI, OECD.AI, Global Forest Watch, DeSmog / Lawfare (block bots).
 
 # Event kinds the agent may assign (frontmatter `kind:`).
 event_kinds:
