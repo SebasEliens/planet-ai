@@ -1,5 +1,7 @@
 # PlanetAI
 
+**Live site:** https://sebaseliens.github.io/planet-ai/
+
 An autonomous **deep-research agent** that maintains a public, append-only
 **event knowledge base** on AI for climate justice, human rights, and a livable
 planet — and publishes it as a browsable **wiki** on GitHub Pages.
@@ -14,7 +16,8 @@ planet — and publishes it as a browsable **wiki** on GitHub Pages.
 - **Design:** [docs/DESIGN.md](docs/DESIGN.md) · **Agent rules:** [AGENTS.md](AGENTS.md)
   · **Roadmap:** [TODO.md](TODO.md)
 
-> Status: **early setup**. No pipeline yet — see [TODO.md](TODO.md).
+> Status: **early setup**. Wiki build (Kiso) and Pages deploy are live; the research
+> agent isn't wired in yet — see [TODO.md](TODO.md).
 
 ## Development
 
