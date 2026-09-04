@@ -25,9 +25,10 @@ knowledge base itself is an append-only event log with its own history in
   links, no copied prose/abstracts/media, independent selection, feeds over scraping),
   planned licences (permissive code, CC BY 4.0 content), and an "AI-generated,
   PR-reviewed" disclosure per page.
-- `AGENTS.md` — working rules for research, genui, and coding agents (incl. a
-  Copyright & sourcing section).
-- `TODO.md` — build order.
+- `AGENTS.md` — split into rules for **coding agents** (§1, project development) vs.
+  **runtime agents** (§2, research + publication in GitHub Actions), which have
+  distinct scopes; shared rules and Copyright & sourcing called out separately.
+- `TODO.md` — development backlog (explicitly not a research/content queue).
 - Project scaffolding: git repo (`main`), `uv` project targeting Python 3.13,
   `pyproject.toml` with ruff (lint + format), mypy (strict), and pytest configured.
 - `.pre-commit-config.yaml` — file-hygiene hooks, ruff, ruff-format, mypy, and a

@@ -1,5 +1,10 @@
 # TODO
 
+**Development backlog only** — this file is for coding agents building the pipeline
+(see [AGENTS.md](AGENTS.md) §1). It is not a research or content queue: the research
+agent finds its own work autonomously from `taxonomy.yaml` and the event log, and
+never reads this file.
+
 Build order for PlanetAI. See [docs/DESIGN.md](docs/DESIGN.md). Check items off as
 they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
