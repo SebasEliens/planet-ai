@@ -3,7 +3,7 @@
 {% if active | length > 1 %}
 <div class="themes-strip">
   {% for t in active %}
-  <span class="theme-chip"><strong>{{ t.label }}</strong> ({{ t.count_window }}){% if copy.theme_blurbs.get(t.id) %} — {{ copy.theme_blurbs[t.id] }}{% endif %}</span>
+  <span class="theme-chip"><strong>{{ t.label }}</strong>: {{ t.count_window }} update{{ '' if t.count_window == 1 else 's' }}{% if copy.theme_blurbs.get(t.id) %}. {{ copy.theme_blurbs[t.id] }}{% endif %}</span>
   {% endfor %}
 </div>
 {% endif %}
