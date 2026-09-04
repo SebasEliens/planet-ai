@@ -44,4 +44,4 @@ knowledge base itself is an append-only event log with its own history in
   `github/gh-aw`, `jordan-gibbs/hyperresearch`, `nvk/llm-wiki`.
 - Estimated operating cost: ~$70–120/month at daily-standard cadence (public repo).
 
-[Unreleased]: https://github.com/OWNER/PlanetAI/commits/main
+[Unreleased]: https://github.com/SebasEliens/planet-ai/commits/main
