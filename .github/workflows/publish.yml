@@ -1,0 +1,51 @@
+name: publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "kb/**"
+      - "genui/**"
+      - "scripts/**"
+      - "taxonomy.yaml"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      # TODO: uv run scripts/validate  &&  uv run scripts/project
+      # TODO: kiso build --source=kb --destination=site   (or SSG)
+      - name: Build site (placeholder front page)
+        run: uv run python -m genui.build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

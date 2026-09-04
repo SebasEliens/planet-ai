@@ -61,12 +61,13 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
 ## 4. Workflows — `.github/workflows/`
 
+- [x] Pages enabled (Actions build type) + `publish.yml` deploy path live
+      (`configure-pages` → `upload-pages-artifact` → `deploy-pages`).
+- [ ] `publish.yml`: replace placeholder build step with
+      validate → `scripts/project` → `kiso build` → genui → `feed.xml`.
 - [ ] `research.yml`: scheduled + `workflow_dispatch`; runs agent; opens PR. Secrets:
       model API key, search API key.
 - [ ] `validate.yml`: runs `scripts/validate` on PRs.
-- [ ] `publish.yml`: on push to `main` → validate → `scripts/project` → `kiso build` →
-      genui → `feed.xml` → deploy Pages.
-- [ ] Pages setup (`actions/upload-pages-artifact`, `actions/deploy-pages`).
 
 ## 5. Wiki build
 
@@ -77,7 +78,8 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
 ## 6. Generative UI front page — `genui/`
 
-- [ ] Deterministic layout shell (`site/index.html` template).
+- [x] Deterministic layout shell (`genui/shell.html`) + placeholder builder
+      (`genui/build.py` → `site/index.html`).
 - [ ] Agent pass: recent-events briefing grouped by theme + new entities + jobs snapshot.
 - [ ] Isolation: bad generation cannot break the wiki build (fallback to a static
       recent-events list).

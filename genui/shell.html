@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlanetAI</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1a1a1a; --bg: #fbfbf9; --muted: #666; --rule: #e2e2dd; --link: #2a5db0; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #e8e8e6; --bg: #16161a; --muted: #9a9a9a; --rule: #2c2c33; --link: #8fb3f0; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 42rem; margin: 0 auto; padding: 4rem 1.25rem 3rem; }
+  h1 { font-size: 2rem; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+  .tag { color: var(--muted); margin: 0 0 2.5rem; }
+  a { color: var(--link); }
+  .content > * + * { margin-top: 1rem; }
+  ul { padding-left: 1.25rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule);
+    color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PlanetAI</h1>
+  <p class="tag">A living, append-only record of AI for climate justice, human rights, and a livable planet.</p>
+  <div class="content">
+__CONTENT__
+  </div>
+  <footer>Built __BUILT__ · <a href="__REPO__">source &amp; design</a> · AI-generated, PR-reviewed</footer>
+</main>
+</body>
+</html>

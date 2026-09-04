@@ -38,6 +38,10 @@ knowledge base itself is an append-only event log with its own history in
   `LICENSE` (MIT), `LICENSE-content` (CC BY 4.0).
 - Directory skeleton: `agent/`, `genui/`, `scripts/`, `kb/{events,entities,sources}/`,
   `tests/`.
+- GitHub Pages enabled (Actions build type) and `.github/workflows/publish.yml` — the
+  deploy path (`configure-pages` → `upload-pages-artifact` → `deploy-pages`) is live
+  with a **placeholder** front page (`genui/shell.html` + `genui/build.py`). The build
+  step becomes validate → project → wiki build → genui once those land.
 
 ### Notes
 - Prior art surveyed: `langchain-ai/openwiki`, `oak-invest/kiso`,

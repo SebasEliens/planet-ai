@@ -58,6 +58,8 @@ uv run ruff check .           # lint     (pre-commit runs these on commit)
 uv run ruff format .          # format
 uv run mypy                   # type-check (strict)
 uv run pytest                 # tests
+
+uv run python -m genui.build  # build site/index.html (placeholder front page)
 ```
 
 - Target Python 3.13. Commit `uv.lock` with any dependency change. Add runtime deps
