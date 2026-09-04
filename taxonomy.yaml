@@ -1,0 +1,114 @@
+# PlanetAI scope — the single source of truth for what the research agent tracks.
+# Edit via PR to steer the agent; no code changes needed. See AGENTS.md §2a.
+#
+# STARTER CONTENT — needs a domain-expert pass before the first real run.
+# `include` / `exclude` are lowercase substring/keyword hints, not regexes.
+
+themes:
+  - id: climate-justice
+    label: Climate Justice
+    priority: 3
+    include:
+      - loss and damage
+      - just transition
+      - climate litigation
+      - climate finance
+      - indigenous data sovereignty
+      - early warning systems
+      - heat / flood / drought risk modelling
+      - adaptation in the global south
+      - AI for climate policy
+    exclude:
+      - voluntary carbon market mechanics
+      - corporate net-zero PR
+      - consumer carbon-footprint apps
+
+  - id: ai-human-rights
+    label: AI & Human Rights
+    priority: 3
+    include:
+      - algorithmic discrimination
+      - biometric / facial recognition
+      - border and migration surveillance
+      - predictive policing
+      - welfare / benefits automation
+      - workplace surveillance
+      - content moderation and speech
+      - AI export controls and dual use
+    exclude:
+      - general AI safety / alignment research
+      - chatbot product launches without a rights angle
+
+  - id: livable-planet
+    label: Environmental Monitoring & a Livable Planet
+    priority: 2
+    include:
+      - earth observation / remote sensing
+      - deforestation and land-use monitoring
+      - methane and emissions detection
+      - biodiversity and wildlife monitoring
+      - ocean and ice monitoring
+      - open environmental datasets and benchmarks
+    exclude:
+      - agritech yield optimisation for large agribusiness
+      - fossil-fuel exploration applications
+
+  - id: ai-governance
+    label: AI Governance & Accountability
+    priority: 2
+    include:
+      - AI regulation and standards (EU AI Act, Council of Europe, UN)
+      - algorithmic audits and impact assessments
+      - transparency registers and disclosure rules
+      - public-sector procurement of AI
+      - litigation and enforcement actions
+    exclude:
+      - industry self-regulation announcements without substance
+
+# Feeds polled first each run (RSS / Atom / JSON). Dead feeds are skipped.
+# TODO: verify each URL and add more (journals, org blogs, preprint categories,
+# funder pages, job boards) before first run.
+seeds:
+  climate-justice:
+    - https://www.climatechange.ai/blog/index.xml
+    - https://www.carbonbrief.org/feed/
+  ai-human-rights:
+    - https://algorithmwatch.org/en/feed/
+    - https://www.accessnow.org/feed/
+    - https://www.adalovelaceinstitute.org/feed/
+    - https://ainowinstitute.org/feed/
+  livable-planet:
+    - http://export.arxiv.org/rss/cs.CY
+  ai-governance:
+    - https://artificialintelligenceact.eu/feed/
+
+# Event kinds the agent may assign (frontmatter `kind:`).
+event_kinds:
+  - paper
+  - project-launch
+  - project-update
+  - report
+  - funding
+  - policy
+  - legal
+  - dataset
+  - benchmark
+  - news
+  - event
+  - job-openings
+
+# Search / run configuration.
+search_window_days: 90        # time-filter for supplemental web search
+backfill_months: 18           # history depth when first tracking a new entity
+
+# LLM via OpenRouter — model is a swappable slug.
+model:
+  research: anthropic/claude-sonnet-5
+  extract: anthropic/claude-sonnet-5
+
+# Per-run budgets by depth (research.yml picks one; default = standard).
+budgets:
+  light:    { max_new_events: 4,  max_searches: 15, max_usd: 1.5,  timeout_min: 12 }
+  standard: { max_new_events: 8,  max_searches: 40, max_usd: 4.0,  timeout_min: 20 }
+  deep:     { max_new_events: 16, max_searches: 90, max_usd: 12.0, timeout_min: 40 }
+depth_default: standard

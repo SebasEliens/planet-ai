@@ -7,13 +7,9 @@ requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "sebas", email = "sebas.eliens@gmail.com" }]
 dependencies = [
-    # runtime deps added as components land (see TODO.md), e.g.:
-    # "anthropic",
-    # "httpx",
-    # "feedparser",
-    # "python-frontmatter",
-    # "pydantic",
-    # "pyyaml",
+    "python-frontmatter>=1.3.0", # read/write event & entity files (bundles PyYAML)
+    # added with the research agent (TODO §3): openai (OpenRouter client),
+    # httpx, feedparser, pydantic
 ]
 
 [dependency-groups]
@@ -22,6 +18,7 @@ dev = [
     "mypy>=1.14",
     "pytest>=8",
     "pre-commit>=4",
+    "types-pyyaml>=6.0.12.20260815",
 ]
 
 [tool.uv]
@@ -66,6 +63,10 @@ python_version = "3.13"
 strict = true
 warn_unused_configs = true
 files = ["agent", "genui", "scripts"]
+
+[[tool.mypy.overrides]]
+module = ["frontmatter"]
+ignore_missing_imports = true
 
 # ----------------------------------------------------------------------------
 # pytest

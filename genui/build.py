@@ -1,9 +1,10 @@
-"""Front-page build.
+"""Front-page build (placeholder).
 
-Currently a **placeholder**: renders a static "coming soon" page into
-``site/index.html`` from the layout shell, so the GitHub Pages deploy path is live
-and green. The real generative build — a recent-events briefing composed from the
-projected event log — lands later (see TODO.md §6).
+Renders a static page into ``site/index.html`` from the layout shell. **Not wired
+into ``publish.yml``** — Kiso currently generates the site index from
+``build/okf/index.md``. This becomes the real generative build — a recent-events
+briefing composed from the projected event log — later (see TODO.md §6), at which
+point ``publish.yml`` runs it after Kiso to overwrite ``site/index.html``.
 """
 
 from __future__ import annotations

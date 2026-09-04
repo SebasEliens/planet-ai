@@ -70,73 +70,88 @@ events legible.
 
 ### 1. Knowledge base — `kb/`
 
-An **OKF bundle**: a directory of Markdown files with YAML frontmatter, no runtime or
-SDK required. See the [OKF spec](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
-and [format overview](https://github.com/GoogleCloudPlatform/open-knowledge-format).
-Two kinds of file:
+`kb/` is a valid **[OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
+bundle**: nested directories of Markdown files, each with a YAML frontmatter block whose
+only required field is `type`. Frontmatter follows OKF conventions (`title`,
+`description`, `tags`, `generated`, `sources`, `status`); `index.md` and `log.md` are
+reserved names (directory listing / chronological history). We add a few custom fields
+(`kind`, `date`, `themes`, `entities`) — OKF consumers ignore unknown fields. Two
+authored kinds of file:
 
-**Events — `kb/events/<year>/<date>-<slug>.md`  (immutable)**
+**Events — `kb/events/<year>/<YYYY-MM-DD>-<slug>.md`  (immutable)**
 
 ```yaml
-id: 2026-09-03-fooproject-launch
+---
+type: Event
+kind: project-launch      # paper | project-launch | project-update | report | funding |
+                          # policy | legal | dataset | benchmark | news | event | job-openings
+title: "FooProject launches an open flood-risk model for the Sahel"
+description: One-sentence factual summary.
 date: 2026-09-03          # when it happened (best-known; note precision if fuzzy)
-recorded: 2026-09-04      # when the agent added it
-type: paper | project-launch | project-update | report | funding |
-      policy | legal | dataset | benchmark | news | event | job-openings
-title: "FooProject launches open flood-risk model for the Sahel"
 themes: [climate-justice]
-entities: ["[[fooproject]]", "[[some-university]]"]
+entities: [projects/fooproject, orgs/some-university]   # bundle-relative, no extension
+tags: [flood, west-africa, open-model]
+generated: { by: planetai/openrouter:anthropic/claude-sonnet-5, at: 2026-09-04T06:12:00Z }
+status: stable            # merged events are immutable ⇒ always "stable"
 sources:
-  - url: https://…
-    publisher: FooProject
-    published: 2026-09-03
-```
+  - id: launch-post
+    resource: https://…
+    title: "FooProject — launch announcement"
+    author: FooProject
+    last_modified: 2026-09-03
+---
 
-Body: 2–5 factual, sourced sentences — what happened, who, what's new. **Never edited
-after merge.** Mistakes are handled by appending a `## Corrections` block (dated) or a
-follow-up event; a CI check rejects PRs that modify the body or frontmatter of an
-existing event file.
+2–5 factual, sourced sentences — what happened, who, what is new. Claims cite sources
+with footnotes (`[^launch-post]`). **Never edited after merge.** Corrections go in an
+appended `## Corrections` block (dated) or a follow-up event; CI rejects any PR that
+modifies the body or frontmatter of an existing event file.
+```
 
 **Entities — `kb/entities/<kind>/<slug>.md`  (living context)**
 
-Actors, projects, technologies, topics, places. A short intro (what it is, why it's in
-scope) plus an auto-generated `<!-- timeline -->` block that the build fills with every
-event referencing the entity, reverse-chronological. Entities are created as stubs the
-moment an event links them; the agent may expand the intro later. Discontinued
-projects keep their page and full timeline.
+`type:` is `Project` / `Organization` / `Technology` / `Topic` / `Place`. A short
+factual intro (what it is, why it's in scope) plus a `<!-- timeline -->` marker that the
+build replaces with every event referencing the entity, reverse-chronological. Entities
+are created as stubs the moment an event links them; the intro can be expanded later.
+Discontinued projects keep their page and full timeline.
 
-**Job openings** are modelled as a single aggregate event per search period
-(`type: job-openings`, e.g. `kb/events/2026/2026-09-jobs.md`): a dated snapshot listing
-every in-scope posting found that period — org, role, location, link, closing date.
-Immutable like any event; the next period gets its own file. Openings are a useful
-signal of where money and attention are moving.
+**Job openings** — a single aggregate event per search period (`kind: job-openings`,
+`kb/events/<year>/<YYYY-MM>-jobs.md`): a dated snapshot listing every in-scope posting
+found that period (org, role, location, link, closing date). Immutable; the next period
+gets its own file.
 
-- Cross-links via `[[wikilinks]]` **and** relative Markdown links (dual-linking keeps
-  it readable in Obsidian, GitHub, and the built site).
+- **Links** are relative Markdown (`../../entities/projects/fooproject.md`) or
+  OKF bundle-relative (`/entities/projects/fooproject.md`). No `[[wikilinks]]` — Kiso
+  and OKF use standard Markdown. The `entities:` frontmatter list is the machine-readable
+  form the projector uses to build timelines.
 - `kb/sources/` holds raw captured material (URL, publication date, retrieval date,
-  excerpt) so events stay auditable.
-- Validation in CI with [`scaccogatto/okf-skills`](https://github.com/scaccogatto/okf-skills)
-  (ships a GitHub Action) or [`openknowledge`](https://github.com/openknowledge-sh/openknowledge),
-  plus a custom immutability check and a link/ID-uniqueness check.
+  short excerpt) so events stay auditable. Excluded from the published site.
+- `kb/.kiso/configuration.yaml` — site name, description, `baseUrl`, theme (§3).
+- Validation: `scripts/validate` (own-words schema + immutability + link/ID checks) and
+  `kiso-cli check`; optionally [`scaccogatto/okf-skills`](https://github.com/scaccogatto/okf-skills).
 
 ### 2. Deep-research agent — `agent/`
 
 Runs in `research.yml`. Responsibilities: discover in-scope factual events not yet in
 the log, verify each against sources, and append event files (+ entity stubs).
 
-- **Engine:** Claude Code / Claude Agent SDK (`claude-sonnet-5`), or
-  [GitHub Agentic Workflows (`gh-aw`)](https://github.github.com/gh-aw/) which compiles a
-  Markdown+YAML workflow spec into an Actions job with cron, sandboxing, and permissions.
-- **Research pipeline** inspired by
+- **Engine:** a small custom Python agent (`agent/`), not a framework. The LLM is
+  reached through **[OpenRouter](https://openrouter.ai)** (OpenAI-compatible API, via
+  the `openai` SDK) so the model is a swappable config string — default
+  `anthropic/claude-sonnet-5`, changeable to GPT/Gemini/OSS without code changes. Our
+  code owns seed-polling, candidate scoring, dedupe, file writes, validation, and PR
+  creation; the LLM only researches a candidate and returns a structured event record
+  (JSON-schema / `response_format`). This keeps spend hard-capped per run and the
+  immutability/dedupe rules deterministic. Runs as a scheduled GitHub Action.
+- **Web search / fetch:** OpenRouter's provider-agnostic `web` plugin (Exa-backed) is
+  the default "server tool"; theme `seeds` (RSS / journal / org / preprint / job-board
+  feeds) are polled first by our own code. Search is behind a thin interface so it can
+  swap to Tavily / Brave / a native provider tool.
+- **Pipeline** inspired by
   [`langchain-ai/openwiki`](https://github.com/langchain-ai/openwiki) (agent → OKF →
-  static export, already wires this end to end),
-  [`nvk/llm-wiki`](https://github.com/nvk/llm-wiki) (thesis-driven, anti-confirmation-bias,
-  `[[wikilink]]` synthesis), and
+  static export) and
   [`jordan-gibbs/hyperresearch`](https://github.com/jordan-gibbs/hyperresearch)
-  (multi-critic auditing, per-sentence cite-checking).
-- **Sources:** theme `seeds` (RSS / journal / org / preprint / job-board feeds) are
-  polled first; [Tavily](https://tavily.com) or Brave Search API fills gaps, time-filtered
-  to `search_window_days`.
+  (per-sentence cite-checking, adversarial verification).
 - **Fact discipline:** an event needs a concrete date and at least one source; the
   agent records the event date as reported (flagging imprecision), never back-dates to
   "now", and writes only what the sources support — no speculation about impact.
@@ -198,15 +213,25 @@ staleness pass** — the log is append-only, so old events are simply old, not s
 
 ### 3. Wiki build — `publish.yml` → `site/`
 
-1. **Project** events into entity timelines and theme indexes (deterministic script).
-2. **Build** the static site with [`kiso`](https://github.com/oak-invest/kiso)
-   (`kiso-cli build --source=kb --destination=site`) — emits Markdown + HTML +
-   `sitemap.xml` + `llms.txt` + client-side search + a downloadable bundle;
-   [documented for use in a GitHub Action](https://oak-invest.github.io/kiso/).
-3. **Emit `feed.xml`** (Atom) of the most recent events.
+1. **`scripts/validate`** — schema + immutability + link/ID checks (also runs on PRs).
+2. **`scripts/project`** — deterministic. Reads `kb/` and writes a *derived* OKF bundle
+   to `build/okf/`: copies events + entities, fills each entity's `<!-- timeline -->`
+   from the events that reference it, generates `index.md` per directory and a per-theme
+   + root `log.md` (OKF's reserved chronological-history file), and emits
+   `build/feed.xml` (Atom) of recent events. `kb/` stays the minimal immutable log;
+   `build/okf/` is disposable.
+3. **`kiso-cli build --source build/okf --destination site`** — via the
+   [`oak-invest/kiso` action](https://oak-invest.github.io/kiso/) (pinned). Emits the
+   Markdown, HTML, `llms.txt`, `sitemap.xml`, client-side search, and a downloadable
+   bundle. Config in `build/okf/.kiso/configuration.yaml` (`site.baseUrl` =
+   the Pages URL, `site.name/title/description`, `theme.name` — DaisyUI, default
+   `light`).
+4. **genui** overwrites `site/index.html` (§4); `build/feed.xml` is copied to
+   `site/feed.xml`.
 
-Fallback if Kiso proves limiting: an SSG (MkDocs Material, Quartz, or Astro Starlight)
-fed by a small OKF→SSG adapter.
+Kiso has no feed/RSS output (hence step 2) and its nav is a DaisyUI theme. Fallback if
+it proves limiting: an SSG (MkDocs Material, Quartz, Astro Starlight) fed from the same
+`build/okf/` bundle.
 
 ### 4. Generative UI front page — `genui/`
 
@@ -226,25 +251,28 @@ copy/curation — isolated so a bad generation can't break the wiki.
 
 | File | Trigger | Does |
 |---|---|---|
-| `.github/workflows/research.yml` | `schedule` (e.g. daily), `workflow_dispatch` | run agent → open PR against `main` |
-| `.github/workflows/publish.yml` | `push` to `main` (paths: `kb/**`, `genui/**`, templates) | validate → project → `kiso build` → genui → deploy Pages |
-| `.github/workflows/validate.yml` | `pull_request` | OKF validation + event immutability + link/ID checks |
+| `.github/workflows/ci.yml` | `push` to `main`, `pull_request` | ruff + mypy + pytest |
+| `.github/workflows/research.yml` | `schedule` (e.g. daily), `workflow_dispatch` | run agent → open PR against `main`. Secret: `OPENROUTER_API_KEY` |
+| `.github/workflows/publish.yml` | `push` to `main` (paths: `kb/**`, `genui/**`, `scripts/**`, `taxonomy.yaml`) | validate → project → `kiso build` → genui → deploy Pages |
+| `.github/workflows/validate.yml` | `pull_request` | `scripts/validate` + `kiso check` |
 
 ## Repo layout
 
 ```
 taxonomy.yaml      configurable scope: themes, include/exclude, priorities, seeds
-kb/                OKF bundle (the knowledge base)
+kb/                OKF bundle (the knowledge base) — the minimal immutable log
+  .kiso/           Kiso site config (name, baseUrl, theme)
   events/<year>/   immutable dated event records (incl. periodic job-openings)
-  entities/<kind>/ living context pages (actors, projects, tech, topics, places)
-  sources/         raw captured source material
-agent/             research agent code + prompts
+  entities/<kind>/ living context pages (Project/Organization/Technology/Topic/Place)
+  sources/         raw captured source material (not published)
+agent/             research agent: OpenRouter client, schema, store, discover, research
   candidates.json  ranked discovery list, regenerated each run
-genui/             front-page generator agent + layout shell
-scripts/           discover, project (events→timelines), link/immutability checks
-site/              build output (gitignored; built in CI)
+genui/             front-page generator + layout shell
+scripts/           project (kb → build/okf + feed), validate
+build/             derived OKF bundle + feed (gitignored; built in CI)
+site/              built site (gitignored; built in CI)
 docs/              this doc, ADRs
-.github/workflows/
+.github/workflows/ ci, research, publish, validate
 ```
 
 ## Key decisions
@@ -254,8 +282,13 @@ docs/              this doc, ADRs
   build deterministic, and sidesteps merge/rewrite conflicts.
 - **Facts over analysis** — the agent records verifiable events, not opinion. Narrow
   scope, cheap verification, low controversy surface.
-- **OKF over ad-hoc Markdown** — vendor-neutral spec, existing validators and a
-  publishing engine (Kiso), agent- and human-readable without a translation layer.
+- **OKF over ad-hoc Markdown** — vendor-neutral spec, a ready publishing engine (Kiso),
+  agent- and human-readable without a translation layer.
+- **OpenRouter, not a provider SDK** — the model is a config string
+  (`anthropic/claude-sonnet-5` today), swappable without code changes; one API key and
+  bill. The trade is a ~5% credit fee and reliance on OpenRouter as an intermediary.
+- **LLM boxed to research + extraction** — all file writes, dedupe, and validation are
+  our deterministic code, so spend is hard-capped and immutability is enforceable.
 - **PR-gated agent writes** — keeps a human in the loop cheaply; matches the pattern in
   [this weekly-research gh-aw example](https://shinglyu.com/blog/2026/04/15/automating-weekly-research-with-github-agentic-workflows.html).
 - **Static-only hosting** — zero infra, free on GitHub Pages, fully forkable.
@@ -311,12 +344,12 @@ targeted review if the KB grows into a substantial public resource.
 
 ## Operational costs
 
-Assumes a **public** repo (Actions minutes and Pages hosting are free) and
-[Claude API pricing](https://docs.claude.com/en/docs/about-claude/pricing) as of
-2026-06: Sonnet 5 $2 / $10 per MTok (in / out), cache reads ~$0.20/MTok; Opus 5
-$5 / $25; Haiku 4.5 $1 / $5. Anthropic server-side web search ≈ $10 / 1,000 searches
-(or Tavily / Brave free tiers: ~1–2k queries/month). Event extraction is lighter work
-than open-ended synthesis, so runs sit toward the low end.
+Assumes a **public** repo (Actions minutes and Pages hosting are free). LLM billed
+through OpenRouter, which passes provider pricing through (`anthropic/claude-sonnet-5`
+= $2 / $10 per MTok in/out, same as first-party) plus a ~5% fee on credit purchases.
+Web search via OpenRouter's `web` plugin (Exa) ≈ $4 / 1,000 results, or Tavily / Brave
+free tiers. Event extraction is lighter work than open-ended synthesis, so runs sit
+toward the low end.
 
 | Item | Light run | Standard run | Deep run |
 |---|---|---|---|
@@ -336,12 +369,12 @@ than open-ended synthesis, so runs sit toward the low end.
 | Weekly | deep | **$45–85** |
 | Daily | deep | **$300–600** |
 
-Levers: prompt caching (assumed), the
-[Batch API](https://docs.claude.com/en/docs/build-with-claude/batch-processing) (−50%,
-fine for scheduled runs), `effort: low` + Haiku 4.5 for extraction/dedupe workers, and
-a hard per-run **token budget**. Costs scale with how many new events exist per run,
-which falls once the log is warm (fewer novel items per crawl). Private repo adds
-~$0.10–0.20 per run past the 2,000-minute Actions free tier.
+Levers: prompt caching (Anthropic-model `cache_control` passes through OpenRouter),
+a cheaper model for the extraction/dedupe passes (`anthropic/claude-haiku-4-5` or an
+OSS model — one config change), capping results per search, and a hard per-run
+**token/candidate budget**. Costs scale with how many new events exist per run, which
+falls once the log is warm. Private repo adds ~$0.10–0.20 per run past the
+2,000-minute Actions free tier.
 
 Recommended starting point: **daily standard** — roughly **$70–120/month** — then tune.
 
@@ -358,10 +391,11 @@ Recommended starting point: **daily standard** — roughly **$70–120/month** �
 - Entity identity & merges: canonical slugs, aliasing, splitting/merging entities
   without breaking event links.
 - Discovery scoring weights — tune from `candidates.json` history.
-- Kiso maturity — evaluate before committing; keep the SSG fallback warm. Does it
-  support the entity-timeline projection, or does that stay a pre-build script?
-- Confirm licences: code (MIT vs Apache-2.0), content (CC BY 4.0) — see Legal &
-  licensing; add `LICENSE` + `LICENSE-content`.
+- Kiso theming/nav — the default DaisyUI theme; how much branding to layer on, and
+  whether its nav copes with a large flat `events/` tree (may need date-grouped index
+  pages from the projector).
+- OpenRouter data policy — set the account to no-logging / no-training; low sensitivity
+  (public web input) but worth doing.
 - Whether `kb/sources/` excerpts are kept in-repo but excluded from the build, or
   dropped entirely after verification.
 - Job-board ToS review before polling any non-feed source.

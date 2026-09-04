@@ -1,0 +1,14 @@
+site:
+  name: PlanetAI
+  title: "PlanetAI — a living record of AI for climate justice & human rights"
+  description: >-
+    An append-only, sourced log of developments in AI for climate justice, human
+    rights, environmental monitoring, and AI governance. AI-generated, PR-reviewed.
+  baseUrl: https://sebaseliens.github.io/planet-ai/
+
+theme:
+  name: light
+
+content:
+  ignorePatterns:
+    - "sources/**"

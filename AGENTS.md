@@ -59,8 +59,14 @@ uv run ruff format .          # format
 uv run mypy                   # type-check (strict)
 uv run pytest                 # tests
 
-uv run python -m genui.build  # build site/index.html (placeholder front page)
+uv run python -m scripts.validate   # schema + immutability + link checks
+uv run python -m scripts.project    # kb/ -> build/okf/ + build/feed.xml
+uv run python -m genui.build        # placeholder front page (not wired into publish yet)
 ```
+
+Local wiki preview needs the Kiso CLI (Java 21): download `kiso-cli.jar` from
+[oak-invest/kiso releases](https://github.com/oak-invest/kiso/releases), then
+`java -jar kiso-cli.jar build --source build/okf --destination site`.
 
 - Target Python 3.13. Commit `uv.lock` with any dependency change. Add runtime deps
   deliberately (they run in CI on every scheduled job) — prefer the stdlib.
@@ -72,15 +78,8 @@ uv run python -m genui.build  # build site/index.html (placeholder front page)
 - When a change is notable, update [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]`) and
   tick / add items in [TODO.md](TODO.md) in the same PR.
 - Changing event/entity schema, the immutability rule, or the taxonomy shape means
-  updating **all four**: `scripts/validate`, `docs/DESIGN.md`, this file, and any
-  affected fixtures.
-- Not built yet (see TODO.md) — wire in as they land:
-
-  ```
-  uv run scripts/validate    # OKF validation + event immutability + link/ID checks
-  uv run scripts/project     # events → entity timelines / theme indexes / feed data
-  kiso-cli build --source=kb --destination=site   # local site build
-  ```
+  updating **together**: `scripts/kb.py` + `scripts/validate.py`, `docs/DESIGN.md`,
+  this file, and any affected fixtures.
 
 ---
 
@@ -104,8 +103,8 @@ records. Touches **only** `kb/**` and `agent/candidates.json`.
    goes in the PR description as a suggestion, never added by the agent.
 4. **Dedupe before writing.** Check candidates against existing event IDs and the
    linked entities' timelines. Multiple outlets on one thing = one event, many sources.
-5. **Don't back-date.** `date` is when the event happened (as reported); `recorded` is
-   today. Flag imprecise dates rather than guessing.
+5. **Don't back-date.** `date` is when the event happened (as reported); `generated.at`
+   is now. Use `YYYY-MM` when the day is unknown rather than guessing one.
 6. **Own words only** — see [Copyright & sourcing](#copyright--sourcing).
 7. **Respect the run budget** (max searches / new files / tokens / wall-clock from
    `taxonomy.yaml` + workflow inputs). Stop cleanly when hit.
@@ -123,43 +122,51 @@ records. Touches **only** `kb/**` and `agent/candidates.json`.
 Run on merge to `main`; build and deploy the site. **Never open a PR, never write to
 `kb/`, never commit `site/`** (it is a build artifact).
 
-- **Projector** (`scripts/project`) is deterministic code, not a model — it derives
-  entity timelines, theme indexes, and the recent-events feed from the event log.
-- **GenUI agent** composes `site/index.html` only, from the projected recent-events
-  data + the `kb/` diff since last publish. It curates and writes copy; it does not
-  add facts. Output must be self-contained and must not break the build — on failure
-  the build falls back to a static recent-events list. Stay within the layout shell in
-  `genui/`.
-- Copyright & sourcing still applies: link out to sources; don't paste third-party
-  prose or media into the page.
+- **`scripts/validate`** then **`scripts/project`** (deterministic code, not models):
+  validate the bundle, then write `build/okf/` (events copied, entity `<!-- timeline -->`
+  filled, `index.md`/`log.md`/theme pages generated) + `build/feed.xml`.
+- **Kiso** builds `build/okf/` → `site/`. `build/` and `site/` are artifacts — never
+  committed.
+- **GenUI agent** (*not wired into `publish.yml` yet*) will compose `site/index.html`
+  from the projected recent-events data. It curates copy; it adds no facts; a failed
+  generation must not break the build (fall back to Kiso's own index). Copyright &
+  sourcing still applies — link out, don't paste third-party prose or media.
 
 ### Event file format
 
-Path: `kb/events/<year>/<YYYY-MM-DD>-<slug>.md`
+Path: `kb/events/<year>/<YYYY-MM-DD>-<slug>.md` (filename must start with `date`).
+OKF frontmatter; `type` is always `Event`, `kind` is the event kind. `scripts/validate`
+is the authority — match [`kb/events/2023/2023-08-03-prithvi-geospatial-model-open-sourced.md`](kb/events/2023/2023-08-03-prithvi-geospatial-model-open-sourced.md).
 
 ```yaml
 ---
-id: 2026-09-03-fooproject-launch
-date: 2026-09-03
-recorded: 2026-09-04
-type: project-launch          # see event_types in taxonomy.yaml
-title: "FooProject launches open flood-risk model for the Sahel"
-themes: [climate-justice]
-entities: ["[[fooproject]]", "[[some-university]]"]
+type: Event
+kind: project-launch            # one of taxonomy.yaml event_kinds
+title: "FooProject launches an open flood-risk model for the Sahel"
+description: One-sentence factual summary.
+date: 2026-09-03                 # when it happened; YYYY-MM-DD, or YYYY-MM if fuzzy
+themes: [climate-justice]        # ⊆ taxonomy theme ids, non-empty
+entities: [projects/fooproject, orgs/some-university]   # bundle-relative, no extension
+tags: [flood, west-africa]
+generated: { by: planetai/openrouter:anthropic/claude-sonnet-5, at: 2026-09-04T06:12:00Z }
+status: stable
 sources:
-  - url: https://…
-    publisher: FooProject
-    published: 2026-09-03
+  - id: launch-post
+    resource: https://…          # required
+    title: "FooProject — launch announcement"
+    author: FooProject
+    last_modified: 2026-09-03
 ---
 
-2–5 factual, sourced sentences: what happened, who, what is new. No speculation.
+2–5 factual, sourced sentences. Cite with footnotes (`[^launch-post]`). No speculation.
 ```
 
-Entity pages (`kb/entities/<kind>/<slug>.md`): short factual intro + a
-`<!-- timeline -->` marker that the build fills. Create a stub whenever an event links
-an entity that has no page yet.
+Entity pages (`kb/entities/<kind>/<slug>.md`, `<kind>` = `projects`/`orgs`/`tech`/
+`topics`/`places`): OKF frontmatter (`type: Project`/`Organization`/…), a short factual
+intro, and a `<!-- timeline -->` marker the build replaces. Create a stub whenever an
+event links an entity with no page yet — `scripts/validate` fails on a dangling ref.
 
-Job openings: one aggregate event per period (`type: job-openings`,
+Job openings: one aggregate event per period (`kind: job-openings`,
 `kb/events/<year>/<YYYY-MM>-jobs.md`) listing each in-scope posting (org, role,
 location, link, closing date). Immutable; next period gets its own file.
 
@@ -191,14 +198,16 @@ advice.
 ## Repository layout
 
 ```
-taxonomy.yaml          scope config (themes, include/exclude, priorities, seeds)
+taxonomy.yaml          scope + model + budgets (themes, include/exclude, seeds)
+kb/.kiso/               Kiso site config (name, baseUrl, theme)
 kb/events/<year>/       immutable event records: <date>-<slug>.md
-kb/entities/<kind>/     living context pages (actors, projects, technologies, topics, places)
-kb/sources/             raw captured source material
-agent/                  research agent code + prompts; candidates.json (per-run discovery list)
+kb/entities/<kind>/     living context pages (projects/orgs/tech/topics/places)
+kb/sources/             raw captured source material (not published)
+agent/                  research agent (OpenRouter client, schema, store, discover) — TODO §3
 genui/                  front-page generator + layout shell
-scripts/                discover, project (events→timelines), link/immutability checks
+scripts/                kb.py (loaders), project.py (kb→build/okf+feed), validate.py
+build/, site/           artifacts, gitignored, built in CI
 tests/                  test suite + fixtures (fixture events live here, not in kb/)
-.github/workflows/      ci.yml, research.yml, publish.yml, validate.yml
+.github/workflows/      ci.yml, publish.yml, validate.yml, research.yml (TODO §4)
 docs/                   design doc, ADRs
 ```

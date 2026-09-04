@@ -1,0 +1,39 @@
+name: validate
+
+on:
+  pull_request:
+    paths:
+      - "kb/**"
+      - "taxonomy.yaml"
+      - "scripts/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      - name: Validate bundle (schema + immutability + links)
+        run: uv run python -m scripts.validate
+
+      - name: Project kb/ -> build/okf
+        run: uv run python -m scripts.project
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Kiso check
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/kiso.jar" \
+            https://github.com/oak-invest/kiso/releases/download/v0.2.3/kiso-cli.jar
+          java -jar "$RUNNER_TEMP/kiso.jar" check --source build/okf

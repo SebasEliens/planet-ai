@@ -25,15 +25,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - run: uv sync --frozen
 
-      # TODO: uv run scripts/validate  &&  uv run scripts/project
-      # TODO: kiso build --source=kb --destination=site   (or SSG)
-      - name: Build site (placeholder front page)
-        run: uv run python -m genui.build
+      - name: Validate bundle
+        run: uv run python -m scripts.validate
+
+      - name: Project kb/ -> build/okf
+        run: uv run python -m scripts.project
+
+      - name: Build site with Kiso
+        uses: oak-invest/kiso/applications/kiso-cli-action@v0.2.3
+        with:
+          version: v0.2.3
+          command: build
+          source: build/okf
+          destination: site
+
+      - name: Add Atom feed
+        run: cp build/feed.xml site/feed.xml
+
+      # TODO: genui pass — overwrite site/index.html with a recent-events briefing
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

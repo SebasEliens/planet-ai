@@ -10,12 +10,15 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
 ## 0. Decisions to close first
 
-- [ ] Fill in `taxonomy.yaml` seed content (themes, include/exclude, priorities, feeds)
-      — needs domain input.
-- [ ] Pick the research engine: Claude Agent SDK vs. `gh-aw`.
-- [ ] Confirm OKF profile / version and whether Kiso can render entity timelines, or
-      that stays a pre-build `scripts/project` step.
-- [ ] Backfill cutoff for newly tracked entities (12–24 months?).
+- [ ] **Domain pass on `taxonomy.yaml`** — the starter themes/include/exclude/seeds
+      need an expert review, and every seed feed URL needs verifying, before the first
+      real research run.
+- [ ] Add `OPENROUTER_API_KEY` to repo Actions secrets (blocks `research.yml`).
+- [x] Research engine: custom Python agent on OpenRouter (OpenAI-compatible), LLM boxed
+      to research + extraction. See DESIGN §2.
+- [x] Wiki generator: **Kiso** (`build/okf/` derived bundle via `scripts/project`;
+      timelines/indexes/feed generated pre-build).
+- [ ] Backfill cutoff for newly tracked entities — starter is `backfill_months: 18`.
 - [x] KB licence (CC BY 4.0) + `LICENSE` (MIT) / `LICENSE-content`.
 
 ## 1. Repository skeleton
@@ -30,51 +33,58 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 - [x] Package dirs `agent/`, `genui/`, `scripts/`; `kb/{events,entities,sources}/`;
       `tests/` smoke test.
 - [x] `README.md` with dev commands.
-- [ ] `taxonomy.yaml` with real seed content.
-- [ ] `kb/` first hand-written example event + entity to pin the format.
-- [ ] Flesh out **Commands** in `AGENTS.md` once `scripts/` exist.
-- [ ] Enable branch protection on `main` (require CI) once pushed to GitHub.
+- [x] `taxonomy.yaml` — starter content (needs the domain pass in §0).
+- [x] `kb/` first example event + entities (Prithvi) to pin the format.
+- [x] Flesh out **Commands** in `AGENTS.md`.
+- [x] Branch protection on `main` (require `lint` + `test`).
 
 ## 2. Knowledge-base tooling — `scripts/`
 
-- [ ] `scripts/validate`: OKF validation + event **immutability** check (no diffs to
-      existing `kb/events/**` bodies/frontmatter) + link resolution + `id` uniqueness.
-- [ ] Enforce sourcing rules in CI where checkable: `kb/sources/` excerpt length cap,
-      ≥1 source per event (no-media guard already in pre-commit).
-- [ ] Exclude `kb/sources/` excerpts from the built site (build config, not deletion).
-- [ ] `scripts/project`: events → entity `<!-- timeline -->` blocks + theme indexes +
-      recent-events list (JSON) for genui and `feed.xml`.
-- [ ] Schema for event & entity frontmatter (JSON Schema or pydantic).
-- [ ] Wire `scripts/validate` + `scripts/project` into `validate.yml` / `publish.yml`.
+- [x] `scripts/kb.py` — read-only loaders (events, entities, taxonomy, site config).
+- [x] `scripts/validate.py` — schema + `kind`/`theme` checks + slug/date consistency +
+      dangling entity refs + no-`[[wikilink]]` + append-only immutability vs `origin/main`.
+- [x] `scripts/project.py` — `kb/` → `build/okf/` (timelines, `index.md`, `log.md`,
+      theme pages) + `build/feed.xml` (Atom). Verified against `kiso-cli check`/`build`.
+- [x] Wire into `validate.yml` (+ `kiso check`) and `publish.yml`.
+- [ ] Enforce sourcing rules: `kb/sources/` excerpt length cap. (no-media guard is in
+      pre-commit; `.kiso` config already ignores `sources/**` from the built site.)
+- [ ] Pydantic models for event/entity frontmatter (currently dataclasses in `kb.py`).
+- [ ] Date-grouped `events/` index pages if Kiso's nav strains on a large flat tree.
 
-## 3. Research agent — `agent/`
+## 3. Research agent — `agent/`  (needs `OPENROUTER_API_KEY`)
 
-- [ ] Seed poller: fetch RSS/Atom/JSON feeds + job boards per theme, normalise items.
-- [ ] Supplemental web search (Tavily or Brave), time-filtered to `search_window_days`.
-- [ ] `scripts/discover`: rank candidates → `agent/candidates.json`.
-- [ ] Dedupe against existing event IDs + entity timelines.
-- [ ] Event extraction + verification prompt (date, sources, factual phrasing).
-- [ ] Entity-stub creation for newly linked entities.
-- [ ] Per-run budget guards (max searches / files / tokens / wall-clock).
-- [ ] Open a PR with summary body.
-- [ ] Job-openings aggregator (periodic `type: job-openings` event).
+- [ ] `uv add openai httpx feedparser pydantic`.
+- [ ] `agent/schema.py` — pydantic `Source` / `Event` / `Candidate`.
+- [ ] `agent/llm.py` — OpenRouter client (`openai` SDK, base_url), model from
+      `taxonomy.yaml`, `web` plugin for search, `response_format` structured output.
+- [ ] `agent/store.py` — append-only writers on top of `scripts/kb.py`; slug/id helpers;
+      refuse to touch existing event files.
+- [ ] `agent/discover.py` — poll seed feeds (feedparser) + searches → scope-filter →
+      dedupe → deterministic score → `agent/candidates.json`.
+- [ ] `agent/research.py` — per top candidate: research, extract `Event`, verify
+      dates/claims, write files + entity stubs.
+- [ ] `agent/run.py` — orchestrate; enforce budget; write `run-summary.md` for the PR.
+- [ ] `agent/prompts/` — system prompt embedding AGENTS.md §2a + Copyright rules.
+- [ ] Tests with recorded fixtures — no live API in CI.
+- [ ] Job-openings aggregator (periodic `kind: job-openings` event).
 
 ## 4. Workflows — `.github/workflows/`
 
-- [x] Pages enabled (Actions build type) + `publish.yml` deploy path live
-      (`configure-pages` → `upload-pages-artifact` → `deploy-pages`).
-- [ ] `publish.yml`: replace placeholder build step with
-      validate → `scripts/project` → `kiso build` → genui → `feed.xml`.
-- [ ] `research.yml`: scheduled + `workflow_dispatch`; runs agent; opens PR. Secrets:
-      model API key, search API key.
-- [ ] `validate.yml`: runs `scripts/validate` on PRs.
+- [x] Pages enabled; `publish.yml` = validate → project → `kiso build` → feed → deploy.
+- [x] `validate.yml` — `scripts/validate` + `scripts/project` + `kiso check` on PRs.
+- [ ] Add `validate` to branch-protection required checks (once it has run once).
+- [ ] `research.yml` — `schedule` + `workflow_dispatch`; `uv run python -m agent.run`;
+      `peter-evans/create-pull-request`. Secret: `OPENROUTER_API_KEY`.
+- [ ] genui step in `publish.yml` (recent-events briefing → `site/index.html`).
 
 ## 5. Wiki build
 
-- [ ] Kiso integration (`kiso-cli build`), or SSG fallback (MkDocs Material / Quartz /
-      Astro Starlight) + OKF→SSG adapter.
-- [ ] `feed.xml` (Atom) of recent events.
-- [ ] Basic theme/branding.
+- [x] Kiso integration via `oak-invest/kiso` action; `.kiso/configuration.yaml`.
+- [x] `feed.xml` (Atom) of recent events (`scripts/project`).
+- [ ] Branding — Kiso ships a default DaisyUI theme + its own favicon; decide how much
+      to customise (theme name, logo, colours).
+- [ ] Add `<link rel="alternate" type="application/atom+xml">` to pages if feasible.
+- [ ] Keep the SSG fallback (MkDocs/Quartz/Astro from `build/okf/`) documented.
 
 ## 6. Generative UI front page — `genui/`
 
