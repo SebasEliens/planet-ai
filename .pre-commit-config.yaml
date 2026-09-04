@@ -1,0 +1,42 @@
+minimum_pre_commit_version: "4.0.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
+        additional_dependencies: []
+        pass_filenames: false
+
+  # Block committing binary/media assets into kb/ — link to them instead.
+  # (see docs/DESIGN.md → Legal & licensing)
+  - repo: local
+    hooks:
+      - id: no-media-in-kb
+        name: no media/binary files under kb/
+        entry: >-
+          bash -c 'files=$(printf "%s\n" "$@" | grep -Ei "^kb/.*\.(png|jpe?g|gif|webp|svg|pdf|mp4|mov|zip|xlsx?|docx?|pptx?)$" || true); if [ -n "$files" ]; then echo "Media/binary files not allowed under kb/ — link instead:"; echo "$files"; exit 1; fi' --
+        language: system
+        types: [file]

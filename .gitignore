@@ -1,0 +1,39 @@
+# Claude Code local symlink (points at AGENTS.md)
+CLAUDE.md
+
+# Build output
+/site/
+/public/
+
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.python-version.local
+
+# Tooling caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Agent run artifacts (regenerated each run)
+/agent/candidates.json
+/agent/.cache/
+
+# Local source excerpts kept out of the published build
+# (verification material; see docs/DESIGN.md → Legal & licensing)
+/kb/sources/**/_raw/
+
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

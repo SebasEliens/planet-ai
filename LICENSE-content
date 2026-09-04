@@ -1,0 +1,26 @@
+Knowledge-base content license
+==============================
+
+The knowledge-base content in this repository — the original text written for this
+project, namely the event summaries under `kb/events/` and the entity prose under
+`kb/entities/` — is licensed under the
+
+    Creative Commons Attribution 4.0 International License (CC BY 4.0)
+    https://creativecommons.org/licenses/by/4.0/
+
+You are free to share and adapt this content, for any purpose, provided you give
+appropriate credit to "PlanetAI" with a link to this repository.
+
+Scope and limits
+----------------
+
+- Facts, dates, and events themselves are not subject to copyright and are not
+  claimed by this license.
+- Hyperlinks and bibliographic metadata (URLs, titles, publishers, dates) are not
+  claimed.
+- Each cited source remains the property of its rights holder and is used here only
+  by reference (link) and, where unavoidable, brief attributed quotation. Reuse of
+  quoted material is governed by the original source's license, not this one.
+- Project source code is licensed separately under the MIT License (see LICENSE).
+
+See docs/DESIGN.md -> "Legal & licensing" for the full rationale and sourcing rules.

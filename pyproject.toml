@@ -1,0 +1,73 @@
+[project]
+name = "planetai"
+version = "0.0.0"
+description = "Autonomous deep-research agent maintaining an immutable OKF event store, published as a static wiki."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [{ name = "sebas", email = "sebas.eliens@gmail.com" }]
+dependencies = [
+    # runtime deps added as components land (see TODO.md), e.g.:
+    # "anthropic",
+    # "httpx",
+    # "feedparser",
+    # "python-frontmatter",
+    # "pydantic",
+    # "pyyaml",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "mypy>=1.14",
+    "pytest>=8",
+    "pre-commit>=4",
+]
+
+[tool.uv]
+package = false
+
+# ----------------------------------------------------------------------------
+# Ruff — linter + formatter
+# ----------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["agent", "genui", "scripts", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "N",        # pep8-naming
+    "UP",       # pyupgrade
+    "B",        # flake8-bugbear
+    "SIM",      # flake8-simplify
+    "PTH",      # flake8-use-pathlib
+    "RUF",      # ruff-specific
+]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["N802", "N803"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# ----------------------------------------------------------------------------
+# mypy — static typing
+# ----------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unused_configs = true
+files = ["agent", "genui", "scripts"]
+
+# ----------------------------------------------------------------------------
+# pytest
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+pythonpath = ["."]
