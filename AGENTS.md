@@ -60,8 +60,8 @@ uv run mypy                   # type-check (strict)
 uv run pytest                 # tests
 
 uv run python -m scripts.validate   # schema + immutability + link checks
-uv run python -m scripts.project    # kb/ -> build/okf/ + build/feed.xml
-uv run python -m genui.build        # placeholder front page (not wired into publish yet)
+uv run python -m scripts.project    # kb/ -> build/okf/ + build/feed.xml + build/frontpage.json
+uv run python -m genui.build        # front page -> site/index.html (run after a Kiso build)
 ```
 
 Local wiki preview needs the Kiso CLI (Java 21): download `kiso-cli.jar` from
@@ -127,10 +127,14 @@ Run on merge to `main`; build and deploy the site. **Never open a PR, never writ
   filled, `index.md`/`log.md`/theme pages generated) + `build/feed.xml`.
 - **Kiso** builds `build/okf/` → `site/`. `build/` and `site/` are artifacts — never
   committed.
-- **GenUI agent** (*not wired into `publish.yml` yet*) will compose `site/index.html`
-  from the projected recent-events data. It curates copy; it adds no facts; a failed
-  generation must not break the build (fall back to Kiso's own index). Copyright &
-  sourcing still applies — link out, don't paste third-party prose or media.
+- **GenUI** composes `site/index.html` from `build/frontpage.json`, overwriting Kiso's
+  generated index. Layout mode and accent colour are chosen by deterministic code
+  (`genui/select.py`) over event stats — **not** by the model. The model
+  (`genui/copy.py`, via OpenRouter) only fills copy slots (kicker/headline/dek/trends
+  note/theme blurbs) as strict JSON; it adds no facts, and any failure (no key, bad
+  JSON, timeout) falls back to plain deterministic copy so a bad generation can never
+  break the build. Copyright & sourcing still applies — link out, don't paste
+  third-party prose or media.
 
 ### Event file format
 
@@ -204,8 +208,8 @@ kb/events/<year>/       immutable event records: <date>-<slug>.md
 kb/entities/<kind>/     living context pages (projects/orgs/tech/topics/places)
 kb/sources/             raw captured source material (not published)
 agent/                  research agent (OpenRouter client, schema, store, discover) — TODO §3
-genui/                  front-page generator + layout shell
-scripts/                kb.py (loaders), project.py (kb→build/okf+feed), validate.py
+genui/                  select.py (layout+accent), copy.py (LLM), build.py, layouts/
+scripts/                kb.py (loaders), project.py, frontpage.py (stats), validate.py
 build/, site/           artifacts, gitignored, built in CI
 tests/                  test suite + fixtures (fixture events live here, not in kb/)
 .github/workflows/      ci.yml, publish.yml, validate.yml, research.yml (TODO §4)

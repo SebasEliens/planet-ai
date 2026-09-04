@@ -235,13 +235,25 @@ it proves limiting: an SSG (MkDocs Material, Quartz, Astro Starlight) fed from t
 
 ### 4. Generative UI front page — `genui/`
 
-After the wiki builds, a second agent pass composes `site/index.html` as a
-**recent-events briefing**: the newest events (since last publish, then trailing back a
-few weeks), grouped by theme, each linking into the wiki; a "new this period" list of
-entity pages created; and the current job-openings snapshot. Input = the projected
-recent-events list + diff of `kb/` since last publish. Output = one self-contained HTML
-file dropped into `site/` before deploy. Deterministic layout shell, generative
-copy/curation — isolated so a bad generation can't break the wiki.
+After Kiso builds the wiki, `genui.build` overwrites `site/index.html`. Design is
+data-driven, not model-driven: **layout and accent colour are chosen by deterministic
+rules over the last `window_days` of events** (`genui.select`, reading
+`build/frontpage.json` — computed by `scripts.project`/`scripts.frontpage`, no LLM);
+the model's only job is filling copy slots.
+
+- **Layout modes** (`genui/layouts/*.html`, Jinja2): `HEADLINE` (one story scores well
+  ahead of the rest — big lead card), `DIGEST` (activity spread across several stories —
+  card grid), `QUIET` (nothing new in the window — compact, points at the archive).
+  Picked by `genui.select.choose()`, a pure function over event scores
+  (`2×sources + entities linked`) — easy to unit-test, never the model's call.
+- **Accent colour** — one of four theme hues (or neutral), chosen from whichever theme
+  is driving the period's activity. Same data, different look each publish.
+- **Copy** (`genui.copy`) — one OpenRouter call returns strict JSON (kicker, headline,
+  dek, a short trends note, one-sentence theme blurbs) synthesising only what's in the
+  input data; on any failure (no key, bad JSON, timeout, missing field) falls back to
+  plain deterministic copy — this step can never break the build.
+- A small "brief" strip (new entities this period + the latest job-openings snapshot)
+  renders under any mode when present.
 
 ### 5. Deploy
 
@@ -267,9 +279,11 @@ kb/                OKF bundle (the knowledge base) — the minimal immutable log
   sources/         raw captured source material (not published)
 agent/             research agent: OpenRouter client, schema, store, discover, research
   candidates.json  ranked discovery list, regenerated each run
-genui/             front-page generator + layout shell
-scripts/           project (kb → build/okf + feed), validate
-build/             derived OKF bundle + feed (gitignored; built in CI)
+genui/             front page: select (layout+accent, deterministic), copy (LLM),
+  layouts/         build (orchestrate) — Jinja2 templates: base, headline, digest, quiet
+scripts/           kb (loaders), project (kb → build/okf + feed + frontpage.json),
+                   frontpage (stats), validate
+build/             derived OKF bundle + feed + frontpage.json (gitignored; built in CI)
 site/              built site (gitignored; built in CI)
 docs/              this doc, ADRs
 .github/workflows/ ci, research, publish, validate

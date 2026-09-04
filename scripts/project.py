@@ -14,6 +14,7 @@ import shutil
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+from scripts import frontpage
 from scripts.kb import (
     KB,
     REPO_ROOT,
@@ -176,9 +177,10 @@ def build_feed(events: list[Event]) -> None:
 
 
 def main() -> None:
+    taxonomy = load_taxonomy()
     events = load_events()
     entities = load_entities()
-    labels = theme_labels(load_taxonomy())
+    labels = theme_labels(taxonomy)
 
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -194,10 +196,14 @@ def main() -> None:
     build_log(events)
     build_feed(events)
 
+    stats = frontpage.compute_stats(events, entities, taxonomy)
+    frontpage.write(stats)
+
     print(
         f"projected {len(events)} events, {len(entities)} entities -> {OUT.relative_to(REPO_ROOT)}"
     )
     print(f"wrote {FEED.relative_to(REPO_ROOT)}")
+    print(f"wrote {frontpage.FRONTPAGE_JSON.relative_to(REPO_ROOT)}")
 
 
 if __name__ == "__main__":

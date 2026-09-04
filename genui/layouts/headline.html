@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "_themes_strip.html" as strip %}
+{% block content %}
+<article class="card lead">
+  <p class="meta">{{ lead.date }} &middot; {{ lead.kind }}</p>
+  <h2 class="story-title"><a href="{{ lead.href }}">{{ copy.headline }}</a></h2>
+  <p class="dek">{{ copy.dek }}</p>
+</article>
+{% if copy.trends_note %}<p class="trends">{{ copy.trends_note }}</p>{% endif %}
+{{ strip.themes_strip(stats, copy) }}
+{% if others %}
+<h3>Also recent</h3>
+<ul class="story-list">
+  {% for e in others %}
+  <li><a href="{{ e.href }}">{{ e.title }}</a> <span class="meta">{{ e.date }}</span></li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
+{% block extra_css %}
+.story-list { list-style: none; padding: 0; display: grid; gap: .6rem; }
+.story-list li { border-bottom: 1px solid var(--rule); padding-bottom: .6rem; display: flex;
+  justify-content: space-between; gap: 1rem; align-items: baseline; }
+{% endblock %}

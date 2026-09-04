@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="card">
+  <p class="dek">{{ copy.dek }}</p>
+  {% if copy.trends_note %}<p class="trends">{{ copy.trends_note }}</p>{% endif %}
+</article>
+<p class="explore">
+  <a href="log.html">Browse the full log</a> &middot; <a href="themes/index.html">By theme</a>
+  &middot; <a href="entities/index.html">All entities</a>
+</p>
+{% endblock %}
+{% block extra_css %}
+.explore { margin-top: 1.25rem; }
+{% endblock %}

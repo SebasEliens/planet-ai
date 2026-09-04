@@ -1,0 +1,10 @@
+{% macro themes_strip(stats, copy) %}
+{% set active = stats.theme_activity | selectattr("count_window", "gt", 0) | list %}
+{% if active | length > 1 %}
+<div class="themes-strip">
+  {% for t in active %}
+  <span class="theme-chip"><strong>{{ t.label }}</strong> ({{ t.count_window }}){% if copy.theme_blurbs.get(t.id) %} — {{ copy.theme_blurbs[t.id] }}{% endif %}</span>
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}

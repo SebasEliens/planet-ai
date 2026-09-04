@@ -88,11 +88,16 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
 ## 6. Generative UI front page — `genui/`
 
-- [x] Deterministic layout shell (`genui/shell.html`) + placeholder builder
-      (`genui/build.py` → `site/index.html`).
-- [ ] Agent pass: recent-events briefing grouped by theme + new entities + jobs snapshot.
-- [ ] Isolation: bad generation cannot break the wiki build (fallback to a static
-      recent-events list).
+- [x] Deterministic stats (`scripts/frontpage.py` → `build/frontpage.json`): windowed
+      recent events, per-theme activity + trend, new entities, job-openings snapshot.
+- [x] Deterministic layout + accent selection (`genui/select.py`, pure function,
+      unit-tested) — HEADLINE / DIGEST / QUIET, four theme accent colours.
+- [x] LLM copy pass via OpenRouter (`genui/copy.py`, strict JSON, `anthropic/claude-haiku-4-5`
+      default) with deterministic fallback copy on any failure.
+- [x] Jinja2 layouts (`genui/layouts/`) + `genui/build.py` orchestration, wired into
+      `publish.yml` after the Kiso build.
+- [ ] `THEME_SPOTLIGHT` layout mode, once real theme-activity patterns are visible.
+- [ ] Tune `HEADLINE_SCORE_GAP` and the lead-story score formula against real data.
 
 ## 7. Hardening / later
 

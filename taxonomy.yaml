@@ -122,6 +122,7 @@ backfill_months: 18           # history depth when first tracking a new entity
 model:
   research: anthropic/claude-sonnet-5
   extract: anthropic/claude-sonnet-5
+  genui: anthropic/claude-haiku-4-5   # front-page copy only — bounded, cheap task
 
 # Per-run budgets by depth (research.yml picks one; default = standard).
 budgets:

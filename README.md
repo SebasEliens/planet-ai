@@ -16,8 +16,8 @@ planet — and publishes it as a browsable **wiki** on GitHub Pages.
 - **Design:** [docs/DESIGN.md](docs/DESIGN.md) · **Agent rules:** [AGENTS.md](AGENTS.md)
   · **Roadmap:** [TODO.md](TODO.md)
 
-> Status: **early setup**. Wiki build (Kiso) and Pages deploy are live; the research
-> agent isn't wired in yet — see [TODO.md](TODO.md).
+> Status: **early setup**. Wiki build (Kiso), the generative front page, and Pages
+> deploy are live; the research agent isn't wired in yet — see [TODO.md](TODO.md).
 
 ## Development
 

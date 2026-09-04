@@ -63,6 +63,20 @@ knowledge base itself is an append-only event log with its own history in
 - OKF/Kiso alignment: frontmatter follows OKF conventions (`type` + `generated` +
   `sources` + `status`); `[[wikilinks]]` dropped in favour of Markdown links;
   `kb/.kiso/configuration.yaml` added.
+- **Generative front page, wired end-to-end** (replaces the placeholder):
+  - `scripts/frontpage.py` — deterministic stats (`build/frontpage.json`): windowed
+    recent events scored by sources+entities, per-theme activity vs. the prior window,
+    new entities, latest job-openings snapshot. No LLM.
+  - `genui/select.py` — pure, unit-tested function choosing a layout mode (`HEADLINE`
+    / `DIGEST` / `QUIET`) and an accent theme colour from those stats. No LLM.
+  - `genui/copy.py` — the one LLM step: OpenRouter call (`anthropic/claude-haiku-4-5`
+    default) returns strict JSON copy (kicker/headline/dek/trends-note/theme blurbs);
+    falls back to plain deterministic copy on any failure so the build can't break.
+  - `genui/layouts/` — Jinja2 templates (base shell + 3 modes), 4 theme accent colours,
+    dark-mode aware, CSS-only motion. `genui/build.py` orchestrates and overwrites
+    Kiso's `site/index.html`. Verified against the real `kiso-cli` build in all three
+    modes.
+  - `publish.yml` — genui step runs after Kiso, with `OPENROUTER_API_KEY` from secrets.
 
 ### Notes
 - Prior art surveyed: `langchain-ai/openwiki`, `oak-invest/kiso`,

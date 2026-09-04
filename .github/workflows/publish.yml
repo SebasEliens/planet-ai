@@ -49,7 +49,10 @@ jobs:
       - name: Add Atom feed
         run: cp build/feed.xml site/feed.xml
 
-      # TODO: genui pass — overwrite site/index.html with a recent-events briefing
+      - name: Generative front page
+        run: uv run python -m genui.build
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

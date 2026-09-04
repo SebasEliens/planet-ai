@@ -27,7 +27,13 @@ repos:
     rev: v2.3.1
     hooks:
       - id: mypy
-        additional_dependencies: []
+        # mirror runtime deps whose types mypy needs to see (pyproject.toml deps)
+        additional_dependencies:
+          - python-frontmatter
+          - types-PyYAML
+          - jinja2
+          - openai
+          - pydantic
         pass_filenames: false
 
   # Block committing binary/media assets into kb/ — link to them instead.

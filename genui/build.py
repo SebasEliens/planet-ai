@@ -1,49 +1,104 @@
-"""Front-page build (placeholder).
+"""Front-page build.
 
-Renders a static page into ``site/index.html`` from the layout shell. **Not wired
-into ``publish.yml``** — Kiso currently generates the site index from
-``build/okf/index.md``. This becomes the real generative build — a recent-events
-briefing composed from the projected event log — later (see TODO.md §6), at which
-point ``publish.yml`` runs it after Kiso to overwrite ``site/index.html``.
+Loads the deterministic stats ``scripts.project`` wrote (``build/frontpage.json``),
+picks a layout deterministically (``genui.select`` — no LLM), asks the model for copy
+only (``genui.copy`` — falls back to plain deterministic copy on any failure, so this
+step can never break the build), and renders one of a small set of Jinja2 layouts to
+``site/index.html``, overwriting Kiso's generated index. See docs/DESIGN.md §4.
+
+Run: ``uv run python -m genui.build``
 """
 
 from __future__ import annotations
 
-import datetime as dt
 from pathlib import Path
+from typing import Any
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from genui import copy as copy_mod
+from genui.select import Selection, choose
+from scripts.frontpage import FRONTPAGE_JSON, EntityBrief, EventBrief, FrontpageStats, load
+from scripts.kb import REPO_ROOT, load_taxonomy
 
 REPO_URL = "https://github.com/SebasEliens/planet-ai"
-SHELL = Path(__file__).parent / "shell.html"
-OUT = Path("site/index.html")
+LAYOUTS_DIR = Path(__file__).parent / "layouts"
+OUT = REPO_ROOT / "site" / "index.html"
 
-PLACEHOLDER = f"""\
-    <p><strong>The knowledge base is being set up.</strong> Soon this page will show
-    the most recent developments — papers, project launches and updates, reports,
-    funding, policy and legal moves, and open roles — each linking into the wiki.</p>
-    <p>Until then:</p>
-    <ul>
-      <li><a href="{REPO_URL}/blob/main/docs/DESIGN.md">Design doc</a> — how the agent,
-          event store, and wiki fit together</li>
-      <li><a href="{REPO_URL}/blob/main/TODO.md">Roadmap</a></li>
-      <li><a href="{REPO_URL}">Repository</a></li>
-    </ul>
-"""
+_TRUNCATE_LIMITS = {"kicker": 80, "headline": 160, "dek": 260, "trends_note": 420}
 
 
-def render(shell: str, content: str, built: str) -> str:
-    return (
-        shell.replace("__CONTENT__", content)
-        .replace("__BUILT__", built)
-        .replace("__REPO__", REPO_URL)
+def _href(rel: str) -> str:
+    return f"{rel[:-3]}.html" if rel.endswith(".md") else rel
+
+
+def _event_view(e: EventBrief) -> dict[str, Any]:
+    return {
+        "title": e.title,
+        "date": e.date,
+        "kind": e.kind,
+        "description": e.description,
+        "href": _href(e.rel),
+    }
+
+
+def _entity_view(e: EntityBrief) -> dict[str, str]:
+    return {"title": e.title, "href": f"entities/{e.ref}.html"}
+
+
+def _truncate(text: str, limit: int) -> str:
+    text = text.strip()
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def _copy_context(cp: copy_mod.Copy) -> dict[str, Any]:
+    return {
+        "kicker": _truncate(cp.kicker, _TRUNCATE_LIMITS["kicker"]) or "PlanetAI",
+        "headline": _truncate(cp.headline, _TRUNCATE_LIMITS["headline"]) or "PlanetAI",
+        "dek": _truncate(cp.dek, _TRUNCATE_LIMITS["dek"]),
+        "trends_note": _truncate(cp.trends_note, _TRUNCATE_LIMITS["trends_note"]),
+        "theme_blurbs": cp.theme_blurbs,
+    }
+
+
+def render(stats: FrontpageStats, selection: Selection, cp: copy_mod.Copy) -> str:
+    env = Environment(
+        loader=FileSystemLoader(LAYOUTS_DIR),
+        autoescape=select_autoescape(["html"]),
+        trim_blocks=True,
+        lstrip_blocks=True,
     )
+    template = env.get_template(f"{selection.mode.value}.html")
+    events = [_event_view(e) for e in stats.recent_events]
+    jobs = stats.job_openings
+
+    context: dict[str, Any] = {
+        "stats": stats,
+        "copy": _copy_context(cp),
+        "accent": selection.accent,
+        "lead": events[0] if events else None,
+        "others": events[1:6],
+        "events": events,
+        "new_entities": [_entity_view(e) for e in stats.new_entities],
+        "job_openings": {"title": jobs.title, "href": _href(jobs.rel)} if jobs else None,
+        "repo_url": REPO_URL,
+    }
+    return template.render(**context)
 
 
 def main() -> None:
-    built = dt.datetime.now(dt.UTC).strftime("%Y-%m-%d")
-    html = render(SHELL.read_text(encoding="utf-8"), PLACEHOLDER, built)
+    stats = load(FRONTPAGE_JSON)
+    selection = choose(stats)
+    model = load_taxonomy().get("model", {}).get("genui", copy_mod.DEFAULT_MODEL)
+    cp = copy_mod.generate_copy(stats, selection, model=model)
+    html = render(stats, selection, cp)
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
-    print(f"wrote {OUT} ({len(html):,} bytes)")
+    print(
+        f"genui: mode={selection.mode.value} accent={selection.accent} "
+        f"-> wrote {OUT} ({len(html):,} bytes)"
+    )
 
 
 if __name__ == "__main__":
