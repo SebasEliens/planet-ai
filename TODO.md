@@ -53,29 +53,49 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
 ## 3. Research agent — `agent/`  (needs `OPENROUTER_API_KEY`)
 
-- [ ] `uv add openai httpx feedparser pydantic`.
-- [ ] `agent/schema.py` — pydantic `Source` / `Event` / `Candidate`.
-- [ ] `agent/llm.py` — OpenRouter client (`openai` SDK, base_url), model from
-      `taxonomy.yaml`, `web` plugin for search, `response_format` structured output.
-- [ ] `agent/store.py` — append-only writers on top of `scripts/kb.py`; slug/id helpers;
-      refuse to touch existing event files.
-- [ ] `agent/discover.py` — poll seed feeds (feedparser) + searches → scope-filter →
-      dedupe → deterministic score → `agent/candidates.json`.
-- [ ] `agent/research.py` — per top candidate: research, extract `Event`, verify
-      dates/claims, write files + entity stubs.
-- [ ] `agent/run.py` — orchestrate; enforce budget; write `run-summary.md` for the PR.
+- [x] `uv add openai httpx feedparser pydantic`.
+- [x] `agent/schema.py` — pydantic `Candidate` / `EventDraft` / `EntityMention` /
+      `SourceRef` / `Budget`.
+- [x] `agent/llm.py` — OpenRouter client (`openai` SDK, base_url), model from
+      `taxonomy.yaml`, `response_format` structured JSON output. Forces the primary
+      source URL and normalises `themes` to taxonomy ids in code (defence in depth —
+      both failure modes showed up in live testing; don't just trust the prompt).
+- [x] `agent/store.py` — append-only writers on top of `scripts/kb.py`; slug/id
+      helpers; refuses to overwrite an existing entity page (events disambiguate with
+      a `-2` suffix instead, since a same-day title collision is a legitimate case,
+      not a bug).
+- [x] `agent/discover.py` — poll seed feeds (feedparser over an httpx-fetched body, so
+      fetches are bounded and testable) → hard-filter on exclude-terms + search
+      window → dedupe against kb/ and across feeds → deterministic score →
+      `agent/candidates.json`.
+- [x] `agent/research.py` — per top candidate within budget: fetch, extract via
+      `agent.llm`, resolve/create entities, write. No live web search yet (TODO below).
+- [x] `agent/run.py` — orchestrate; budget from `$PLANETAI_DEPTH` or
+      `depth_default`; writes `run-summary.md` + `pr-title.txt` for the PR.
+- [x] `.github/workflows/research.yml` — daily cron + `workflow_dispatch` (depth
+      choice); opens a PR via `peter-evans/create-pull-request`.
+- [x] Verified against live feeds + a real OpenRouter call (not just mocked tests) —
+      see CHANGELOG.
+- [ ] Supplemental web search to fill gaps beyond the seed feeds (OpenRouter `web`
+      plugin, or Tavily/Brave) — discovery is feed-only for now.
+- [ ] Optional `PLANETAI_PR_TOKEN` secret (fine-grained PAT: Contents + Pull requests
+      write on this repo) so the agent's own PRs trigger `ci`/`validate` automatically
+      — GITHUB_TOKEN-authored PRs don't trigger `pull_request` workflows (GitHub's
+      anti-recursion rule). Without it, PRs still open; checks need a manual re-run.
+- [ ] Cost telemetry — `Budget.max_usd` is currently informational only, not metered
+      against actual OpenRouter token usage.
 - [ ] `agent/prompts/` — system prompt embedding AGENTS.md §2a + Copyright rules.
 - [ ] Tests with recorded fixtures — no live API in CI.
 - [ ] Job-openings aggregator (periodic `kind: job-openings` event).
 
 ## 4. Workflows — `.github/workflows/`
 
-- [x] Pages enabled; `publish.yml` = validate → project → `kiso build` → feed → deploy.
+- [x] Pages enabled; `publish.yml` = validate → project → `kiso build` → genui → deploy.
 - [x] `validate.yml` — `scripts/validate` + `scripts/project` + `kiso check` on PRs.
+- [x] `research.yml` — `schedule` + `workflow_dispatch` (depth input);
+      `uv run python -m agent.run`; `peter-evans/create-pull-request`. Secret:
+      `OPENROUTER_API_KEY`; optional `PLANETAI_PR_TOKEN` (see §3).
 - [ ] Add `validate` to branch-protection required checks (once it has run once).
-- [ ] `research.yml` — `schedule` + `workflow_dispatch`; `uv run python -m agent.run`;
-      `peter-evans/create-pull-request`. Secret: `OPENROUTER_API_KEY`.
-- [ ] genui step in `publish.yml` (recent-events briefing → `site/index.html`).
 
 ## 5. Wiki build
 

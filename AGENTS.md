@@ -207,11 +207,12 @@ kb/.kiso/               Kiso site config (name, baseUrl, theme)
 kb/events/<year>/       immutable event records: <date>-<slug>.md
 kb/entities/<kind>/     living context pages (projects/orgs/tech/topics/places)
 kb/sources/             raw captured source material (not published)
-agent/                  research agent (OpenRouter client, schema, store, discover) — TODO §3
+agent/                  schema.py, llm.py (OpenRouter), store.py, discover.py,
+                        research.py, run.py — see TODO §3 for remaining gaps
 genui/                  select.py (layout+accent), copy.py (LLM), build.py, layouts/
 scripts/                kb.py (loaders), project.py, frontpage.py (stats), validate.py
 build/, site/           artifacts, gitignored, built in CI
 tests/                  test suite + fixtures (fixture events live here, not in kb/)
-.github/workflows/      ci.yml, publish.yml, validate.yml, research.yml (TODO §4)
+.github/workflows/      ci.yml, publish.yml, validate.yml, research.yml
 docs/                   design doc, ADRs
 ```

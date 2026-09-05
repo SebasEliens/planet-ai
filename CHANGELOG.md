@@ -77,6 +77,32 @@ knowledge base itself is an append-only event log with its own history in
     Kiso's `site/index.html`. Verified against the real `kiso-cli` build in all three
     modes.
   - `publish.yml` — genui step runs after Kiso, with `OPENROUTER_API_KEY` from secrets.
+- **Front-page visual identity**: colour-accented wordmark, an inline SVG contour-line
+  mark (earth-observation motif, not a generic orbit icon) that recolours with the
+  period's dominant theme, Source Serif 4 / Source Sans 3 pairing. Removed several
+  "generated-page" typographic tells present in the first pass (ALL-CAPS tracked
+  labels, dot/dash-joined meta strings, per-card fade-in animation).
+- **Research agent, wired end-to-end** (`agent/`) — the last major unbuilt piece:
+  - `agent/schema.py` / `agent/store.py` / `agent/discover.py` (feedparser over an
+    httpx-fetched body — bounded timeouts, testable) / `agent/llm.py` (OpenRouter
+    extraction) / `agent/research.py` (fetch → extract → write, within budget) /
+    `agent/run.py` (orchestrate; writes `run-summary.md` + `pr-title.txt`).
+  - `.github/workflows/research.yml` — daily cron + `workflow_dispatch` depth choice;
+    opens a PR via `peter-evans/create-pull-request`. Notes that `GITHUB_TOKEN`-authored
+    PRs don't trigger `pull_request` workflows (GitHub's anti-recursion rule) and
+    documents the optional `PLANETAI_PR_TOKEN` PAT that fixes it.
+  - **Found and fixed two real bugs via a live smoke test against real feeds + a real
+    OpenRouter call** (not just mocked tests): the model wrote theme *labels* instead
+    of taxonomy ids (`scripts/validate` correctly rejected both events — now the ids
+    are passed explicitly in the prompt, and any drift is normalised back to the
+    discovery theme in code, not just requested nicely); and it shortened source URLs
+    to a bare domain (now the candidate's exact URL always wins for the primary
+    source, regardless of what the model wrote) — both are "never trust the model for
+    a fact we already know exactly" fixes, applied in code as defence in depth, not
+    just prompt wording. Also bumped `MAX_OUTPUT_TOKENS` after JSON was truncated
+    mid-string on longer articles.
+  - 65 tests, all network calls (OpenRouter + feeds + article fetch) mocked/stubbed —
+    consistent with the no-live-calls-in-CI rule used for `genui.copy`.
 
 ### Notes
 - Prior art surveyed: `langchain-ai/openwiki`, `oak-invest/kiso`,
