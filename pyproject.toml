@@ -7,6 +7,8 @@ requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "sebas", email = "sebas.eliens@gmail.com" }]
 dependencies = [
+    "feedparser>=6.0.14",
+    "httpx>=0.28.1",
     "jinja2>=3.1.6",
     "openai>=3.8.0",
     "pydantic>=2.13.5",
@@ -68,7 +70,7 @@ warn_unused_configs = true
 files = ["agent", "genui", "scripts"]
 
 [[tool.mypy.overrides]]
-module = ["frontmatter"]
+module = ["frontmatter", "feedparser"]
 ignore_missing_imports = true
 
 # ----------------------------------------------------------------------------

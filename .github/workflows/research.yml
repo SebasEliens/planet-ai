@@ -1,0 +1,62 @@
+name: research
+
+on:
+  schedule:
+    - cron: "21 5 * * *" # ~05:21 UTC daily
+  workflow_dispatch:
+    inputs:
+      depth:
+        description: "Run depth (overrides taxonomy.yaml's depth_default)"
+        type: choice
+        options: [light, standard, deep]
+        default: standard
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: research
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      - name: Run the research agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PLANETAI_DEPTH: ${{ inputs.depth }}
+        run: uv run python -m agent.run
+
+      - name: Read the run's PR title
+        id: pr
+        run: echo "title=$(cat agent/pr-title.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Open a PR with any new events
+        uses: peter-evans/create-pull-request@v7
+        with:
+          # Falls back to GITHUB_TOKEN if the optional PAT isn't set — PRs still open,
+          # but pushes authored by GITHUB_TOKEN don't trigger ci.yml/validate.yml
+          # (a GitHub Actions anti-recursion rule). Add a fine-grained PAT
+          # (Contents: write, Pull requests: write on this repo) as PLANETAI_PR_TOKEN
+          # to get automatic checks on the agent's own PRs.
+          token: ${{ secrets.PLANETAI_PR_TOKEN || secrets.GITHUB_TOKEN }}
+          add-paths: |
+            kb/**
+            agent/candidates.json
+          commit-message: ${{ steps.pr.outputs.title }}
+          branch: research/${{ github.run_id }}
+          delete-branch: true
+          title: ${{ steps.pr.outputs.title }}
+          body-path: agent/run-summary.md
+          labels: research-agent

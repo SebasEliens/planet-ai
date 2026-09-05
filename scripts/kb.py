@@ -89,14 +89,17 @@ def _iter_md(root: Path) -> Iterator[Path]:
         yield p
 
 
-def load_events() -> list[Event]:
+def load_events(bundle_root: Path = KB) -> list[Event]:
+    """Load events under ``bundle_root/events``. Defaults to the real kb/; pass a
+    different bundle root (e.g. a tmp_path fixture) to load an isolated test bundle."""
     events: list[Event] = []
-    if not EVENTS_DIR.is_dir():
+    events_dir = bundle_root / "events"
+    if not events_dir.is_dir():
         return events
-    for p in _iter_md(EVENTS_DIR):
+    for p in _iter_md(events_dir):
         post = frontmatter.load(p)
         m = post.metadata
-        rel = p.relative_to(KB).as_posix()
+        rel = p.relative_to(bundle_root).as_posix()
         events.append(
             Event(
                 path=p,
@@ -118,18 +121,20 @@ def load_events() -> list[Event]:
     return events
 
 
-def load_entities() -> list[Entity]:
+def load_entities(bundle_root: Path = KB) -> list[Entity]:
+    """Load entities under ``bundle_root/entities``. See ``load_events`` re: bundle_root."""
     entities: list[Entity] = []
-    if not ENTITIES_DIR.is_dir():
+    entities_dir = bundle_root / "entities"
+    if not entities_dir.is_dir():
         return entities
-    for p in _iter_md(ENTITIES_DIR):
+    for p in _iter_md(entities_dir):
         post = frontmatter.load(p)
         m = post.metadata
         kind = p.parent.name
         entities.append(
             Entity(
                 path=p,
-                rel=p.relative_to(KB).as_posix(),
+                rel=p.relative_to(bundle_root).as_posix(),
                 ref=f"{kind}/{p.stem}",
                 kind=kind,
                 slug=p.stem,

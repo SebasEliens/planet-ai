@@ -20,8 +20,11 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Agent run artifacts (regenerated each run)
-/agent/candidates.json
+# Agent run artifacts — PR-body/title scratch, regenerated each run and consumed by
+# research.yml. candidates.json is NOT ignored: it's committed with the PR for
+# transparency (see docs/DESIGN.md §2b).
+/agent/run-summary.md
+/agent/pr-title.txt
 /agent/.cache/
 
 # Local source excerpts kept out of the published build

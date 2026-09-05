@@ -34,6 +34,8 @@ repos:
           - jinja2
           - openai
           - pydantic
+          - httpx
+          - feedparser
         pass_filenames: false
 
   # Block committing binary/media assets into kb/ — link to them instead.
