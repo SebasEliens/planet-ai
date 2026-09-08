@@ -16,10 +16,10 @@ planet — and publishes it as a browsable **wiki** on GitHub Pages.
 - **Design:** [docs/DESIGN.md](docs/DESIGN.md) · **Agent rules:** [AGENTS.md](AGENTS.md)
   · **Roadmap:** [TODO.md](TODO.md)
 
-> Status: the full pipeline is live — the research agent runs daily via GitHub
-> Actions, opens a PR for each run, and merges flow through Kiso + the generative
-> front page to GitHub Pages. Taxonomy scope and discovery scoring still want tuning
-> from real runs — see [TODO.md](TODO.md).
+> Status: the full pipeline is live — the research agent runs fortnightly via GitHub
+> Actions, opens a PR for each run that auto-merges on green CI, and merges flow
+> through Kiso + the generative front page to GitHub Pages. Taxonomy scope and
+> discovery scoring still want tuning from real runs — see [TODO.md](TODO.md).
 
 ## Development
 

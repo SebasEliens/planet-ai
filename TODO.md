@@ -72,16 +72,18 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
       `agent.llm`, resolve/create entities, write. No live web search yet (TODO below).
 - [x] `agent/run.py` — orchestrate; budget from `$PLANETAI_DEPTH` or
       `depth_default`; writes `run-summary.md` + `pr-title.txt` for the PR.
-- [x] `.github/workflows/research.yml` — daily cron + `workflow_dispatch` (depth
-      choice); opens a PR via `peter-evans/create-pull-request`.
+- [x] `.github/workflows/research.yml` — fortnightly cron (1st & 15th) +
+      `workflow_dispatch` (depth choice); opens a PR via
+      `peter-evans/create-pull-request` that auto-merges on green CI.
 - [x] Verified against live feeds + a real OpenRouter call (not just mocked tests) —
       see CHANGELOG.
 - [ ] Supplemental web search to fill gaps beyond the seed feeds (OpenRouter `web`
       plugin, or Tavily/Brave) — discovery is feed-only for now.
-- [ ] Optional `PLANETAI_PR_TOKEN` secret (fine-grained PAT: Contents + Pull requests
-      write on this repo) so the agent's own PRs trigger `ci`/`validate` automatically
-      — GITHUB_TOKEN-authored PRs don't trigger `pull_request` workflows (GitHub's
-      anti-recursion rule). Without it, PRs still open; checks need a manual re-run.
+- [ ] **`PLANETAI_PR_TOKEN` secret** (fine-grained PAT: Contents + Pull requests
+      write on this repo) — now load-bearing, not optional: the research PR auto-merges
+      on green CI, and GITHUB_TOKEN-authored PRs don't trigger `pull_request` workflows
+      (GitHub's anti-recursion rule), so without the PAT the required checks never run
+      and the PR sits unmerged until a maintainer kicks CI.
 - [ ] Cost telemetry — `Budget.max_usd` is currently informational only, not metered
       against actual OpenRouter token usage.
 - [ ] `agent/prompts/` — system prompt embedding AGENTS.md §2a + Copyright rules.
@@ -92,9 +94,10 @@ they land; move notable changes into [CHANGELOG.md](CHANGELOG.md).
 
 - [x] Pages enabled; `publish.yml` = validate → project → `kiso build` → genui → deploy.
 - [x] `validate.yml` — `scripts/validate` + `scripts/project` + `kiso check` on PRs.
-- [x] `research.yml` — `schedule` + `workflow_dispatch` (depth input);
-      `uv run python -m agent.run`; `peter-evans/create-pull-request`. Secret:
-      `OPENROUTER_API_KEY`; optional `PLANETAI_PR_TOKEN` (see §3).
+- [x] `research.yml` — fortnightly `schedule` + `workflow_dispatch` (depth input);
+      `uv run python -m agent.run`; `peter-evans/create-pull-request` + `gh pr merge
+      --auto`. Secrets: `OPENROUTER_API_KEY`; `PLANETAI_PR_TOKEN` (see §3, now
+      load-bearing for auto-merge). Repo has `allow_auto_merge` on.
 - [ ] Add `validate` to branch-protection required checks (once it has run once).
 
 ## 5. Wiki build

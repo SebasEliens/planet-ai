@@ -2,7 +2,9 @@ name: research
 
 on:
   schedule:
-    - cron: "21 5 * * *" # ~05:21 UTC daily
+    # 1st and 15th at ~05:21 UTC — roughly fortnightly (a true 14-day
+    # period isn't expressible in cron).
+    - cron: "21 5 1,15 * *"
   workflow_dispatch:
     inputs:
       depth:
@@ -43,6 +45,7 @@ jobs:
         run: echo "title=$(cat agent/pr-title.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Open a PR with any new events
+        id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
           # Falls back to GITHUB_TOKEN if the optional PAT isn't set — PRs still open,
@@ -60,3 +63,13 @@ jobs:
           title: ${{ steps.pr.outputs.title }}
           body-path: agent/run-summary.md
           labels: research-agent
+
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          # Needs the PAT: auto-merge only fires once the required checks
+          # (lint + test) report, and GITHUB_TOKEN-authored PRs don't trigger
+          # them. Falls back to GITHUB_TOKEN, in which case a maintainer must
+          # kick CI (e.g. close/reopen the PR) for the merge to go through.
+          GH_TOKEN: ${{ secrets.PLANETAI_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}"
