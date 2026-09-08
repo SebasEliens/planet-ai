@@ -22,7 +22,9 @@ give context and are largely projections of the event log.
 ## Rules for everyone
 
 - **Never push to `main`.** It is branch-protected. All changes land via pull request
-  with green CI (`lint` + `test`).
+  with green CI (`lint` + `test`). No human approval is required to merge — the
+  research agent's PRs auto-merge once CI passes. Coding agents still wait for a
+  maintainer to merge their own PRs.
 - **Stay in your lane.** A coding agent does not research or write `kb/` content; a
   runtime agent does not touch code, workflows, or dependencies.
 - **Attribution.** End commit messages with
@@ -116,6 +118,8 @@ records. Touches **only** `kb/**` and `agent/candidates.json`.
   taxonomy suggestions.
 - Diffs are additive. A PR that modifies existing `kb/events/` files must fail CI; if
   it doesn't, stop and flag it.
+- The PR auto-merges once `lint` + `test` pass — there is no human review step. To
+  hold one for a closer look, leave an unresolved review comment on it.
 
 ### 2b. Publication agents — `publish.yml`
 
