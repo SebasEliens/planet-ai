@@ -87,10 +87,13 @@ knowledge base itself is an append-only event log with its own history in
     httpx-fetched body — bounded timeouts, testable) / `agent/llm.py` (OpenRouter
     extraction) / `agent/research.py` (fetch → extract → write, within budget) /
     `agent/run.py` (orchestrate; writes `run-summary.md` + `pr-title.txt`).
-  - `.github/workflows/research.yml` — daily cron + `workflow_dispatch` depth choice;
-    opens a PR via `peter-evans/create-pull-request`. Notes that `GITHUB_TOKEN`-authored
-    PRs don't trigger `pull_request` workflows (GitHub's anti-recursion rule) and
-    documents the optional `PLANETAI_PR_TOKEN` PAT that fixes it.
+  - `.github/workflows/research.yml` — fortnightly cron (1st & 15th) +
+    `workflow_dispatch` depth choice; opens a PR via `peter-evans/create-pull-request`
+    that auto-merges once `lint` + `test` pass (`gh pr merge --auto`, repo
+    `allow_auto_merge` enabled) — no human approval step. `GITHUB_TOKEN`-authored PRs
+    don't trigger `pull_request` workflows (GitHub's anti-recursion rule), so the
+    `PLANETAI_PR_TOKEN` PAT is now load-bearing: without it the required checks never
+    run and the PR waits for a maintainer.
   - **Found and fixed two real bugs via a live smoke test against real feeds + a real
     OpenRouter call** (not just mocked tests): the model wrote theme *labels* instead
     of taxonomy ids (`scripts/validate` correctly rejected both events — now the ids
@@ -108,8 +111,8 @@ knowledge base itself is an append-only event log with its own history in
 - Prior art surveyed: `langchain-ai/openwiki`, `oak-invest/kiso`,
   `GoogleCloudPlatform/knowledge-catalog` (OKF), `scaccogatto/okf-skills`,
   `github/gh-aw`, `jordan-gibbs/hyperresearch`, `nvk/llm-wiki`.
-- Estimated operating cost: ~$70–120/month at daily-standard cadence (public repo),
-  billed through OpenRouter (+~5% credit fee).
+- Estimated operating cost: ~$5–10/month at the fortnightly-standard cadence (public
+  repo), billed through OpenRouter (+~5% credit fee); ~$70–120 if dialled up to daily.
 - Kiso pinned at v0.2.3 (Java 21 jar / `oak-invest/kiso` composite action).
 
 [Unreleased]: https://github.com/SebasEliens/planet-ai/commits/main
