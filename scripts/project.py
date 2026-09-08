@@ -139,9 +139,9 @@ def build_log(events: list[Event]) -> None:
     ]
     current = ""
     for e in events:
-        if e.date != current:
-            lines += ["", f"## {e.date}", ""]
-            current = e.date
+        if e.iso_date != current:
+            lines += ["", f"## {e.iso_date}", ""]
+            current = e.iso_date
         lines.append(f"- **{e.kind}** — [{e.title}]({e.rel})")
     _write(OUT / "log.md", "\n".join(lines))
 
