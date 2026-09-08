@@ -159,7 +159,9 @@ the log, verify each against sources, and append event files (+ entity stubs).
   IDs and each linked entity's timeline; near-duplicates from multiple outlets collapse
   to one event with multiple sources.
 - **Output discipline:** changes land as a **pull request**, never a direct commit to
-  `main` — PR is the review gate. Each PR body summarises the events added.
+  `main`. The PR auto-merges once CI (`lint` + `test`) is green — no human approval
+  step — so the pipeline runs unattended. Each PR body summarises the events added;
+  an unresolved review comment is the way to hold a merge for a closer look.
 - **Scope guardrails:** only themes/terms permitted by the taxonomy (§2a); per-run
   budget (max searches, max new files, token budget, wall-clock timeout).
 
@@ -264,7 +266,7 @@ the model's only job is filling copy slots.
 | File | Trigger | Does |
 |---|---|---|
 | `.github/workflows/ci.yml` | `push` to `main`, `pull_request` | ruff + mypy + pytest |
-| `.github/workflows/research.yml` | `schedule` (e.g. daily), `workflow_dispatch` | run agent → open PR against `main`. Secret: `OPENROUTER_API_KEY` |
+| `.github/workflows/research.yml` | `schedule` (fortnightly: 1st & 15th), `workflow_dispatch` | run agent → open PR against `main`, auto-merge on green CI. Secrets: `OPENROUTER_API_KEY`, optional `PLANETAI_PR_TOKEN` |
 | `.github/workflows/publish.yml` | `push` to `main` (paths: `kb/**`, `genui/**`, `scripts/**`, `taxonomy.yaml`) | validate → project → `kiso build` → genui → deploy Pages |
 | `.github/workflows/validate.yml` | `pull_request` | `scripts/validate` + `kiso check` |
 
@@ -303,7 +305,10 @@ docs/              this doc, ADRs
   bill. The trade is a ~5% credit fee and reliance on OpenRouter as an intermediary.
 - **LLM boxed to research + extraction** — all file writes, dedupe, and validation are
   our deterministic code, so spend is hard-capped and immutability is enforceable.
-- **PR-gated agent writes** — keeps a human in the loop cheaply; matches the pattern in
+- **PR-then-auto-merge agent writes** — every change still goes through a PR (CI runs,
+  the diff is recorded, immutability is enforced) but it merges on green without a
+  human approval step, so a fortnightly run needs no attention; a maintainer who wants
+  a closer look leaves an unresolved comment to hold the merge. Pattern close to
   [this weekly-research gh-aw example](https://shinglyu.com/blog/2026/04/15/automating-weekly-research-with-github-agentic-workflows.html).
 - **Static-only hosting** — zero infra, free on GitHub Pages, fully forkable.
 - **Copyright-light by construction** — storing facts + dates + own-words summaries +
@@ -378,9 +383,10 @@ toward the low end.
 
 | Cadence | Depth | ~Monthly |
 |---|---|---|
-| Daily | light | **$20–35** |
-| Daily | standard | **$70–120** |
+| Fortnightly | standard | **$5–10** |
+| Weekly | standard | **$10–20** |
 | Weekly | deep | **$45–85** |
+| Daily | standard | **$70–120** |
 | Daily | deep | **$300–600** |
 
 Levers: prompt caching (Anthropic-model `cache_control` passes through OpenRouter),
@@ -390,7 +396,8 @@ OSS model — one config change), capping results per search, and a hard per-run
 falls once the log is warm. Private repo adds ~$0.10–0.20 per run past the
 2,000-minute Actions free tier.
 
-Recommended starting point: **daily standard** — roughly **$70–120/month** — then tune.
+Starting point: **fortnightly standard** (the `research.yml` schedule) — roughly
+**$5–10/month** — then tune the cadence up if the log stays fresh enough.
 
 ## Open questions
 
