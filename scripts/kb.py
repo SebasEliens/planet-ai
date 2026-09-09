@@ -65,7 +65,13 @@ class Event:
     @property
     def sort_key(self) -> tuple[str, str]:
         # pad "2023-08" so it orders next to "2023-08-01"
-        return ((self.date + "-01") if len(self.date) == 7 else self.date, self.slug)
+        return (self.iso_date, self.slug)
+
+    @property
+    def iso_date(self) -> str:
+        """Full ISO-8601 date; a fuzzy ``YYYY-MM`` is padded to the first of the month
+        (Kiso rejects a bare ``YYYY-MM`` in a log/timeline heading)."""
+        return f"{self.date}-01" if len(self.date) == 7 else self.date
 
 
 @dataclass(frozen=True)
