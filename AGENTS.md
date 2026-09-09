@@ -22,9 +22,10 @@ give context and are largely projections of the event log.
 ## Rules for everyone
 
 - **Never push to `main`.** It is branch-protected. All changes land via pull request
-  with green CI (`lint` + `test`). No human approval is required to merge — the
-  research agent's PRs auto-merge once CI passes. Coding agents still wait for a
-  maintainer to merge their own PRs.
+  with green CI (`lint` + `test`). No human approval is required to merge: `automerge.yml`
+  arms auto-merge on any PR opened by the repo owner or the research agent, so it merges
+  the moment CI is green. To hold one for review, open it as a draft or leave an
+  unresolved review comment. External contributors' PRs still need a hand merge.
 - **Stay in your lane.** A coding agent does not research or write `kb/` content; a
   runtime agent does not touch code, workflows, or dependencies.
 - **Attribution.** End commit messages with
@@ -217,6 +218,6 @@ genui/                  select.py (layout+accent), copy.py (LLM), build.py, layo
 scripts/                kb.py (loaders), project.py, frontpage.py (stats), validate.py
 build/, site/           artifacts, gitignored, built in CI
 tests/                  test suite + fixtures (fixture events live here, not in kb/)
-.github/workflows/      ci.yml, publish.yml, validate.yml, research.yml
+.github/workflows/      ci.yml, publish.yml, validate.yml, research.yml, automerge.yml
 docs/                   design doc, ADRs
 ```

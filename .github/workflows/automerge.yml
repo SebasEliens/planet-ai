@@ -1,0 +1,28 @@
+name: automerge
+
+# Arms auto-merge on PRs opened by the repo owner or the research agent, so
+# anything that passes `lint` + `test` merges without a manual click. External
+# contributors' PRs are left alone — they still need a hand merge.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  arm:
+    if: >-
+      github.event.pull_request.draft == false &&
+      (github.event.pull_request.user.login == github.repository_owner ||
+       github.event.pull_request.user.login == 'github-actions[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge
+        env:
+          # Prefer the PAT so the eventual merge commit triggers publish.yml
+          # (a merge attributed to GITHUB_TOKEN wouldn't — anti-recursion).
+          GH_TOKEN: ${{ secrets.PLANETAI_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: gh pr merge --squash --auto "${{ github.event.pull_request.html_url }}"

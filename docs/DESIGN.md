@@ -269,6 +269,7 @@ the model's only job is filling copy slots.
 | `.github/workflows/research.yml` | `schedule` (fortnightly: 1st & 15th), `workflow_dispatch` | run agent → open PR against `main`, auto-merge on green CI. Secrets: `OPENROUTER_API_KEY`, optional `PLANETAI_PR_TOKEN` |
 | `.github/workflows/publish.yml` | `push` to `main` (paths: `kb/**`, `genui/**`, `scripts/**`, `taxonomy.yaml`) | validate → project → `kiso build` → genui → deploy Pages |
 | `.github/workflows/validate.yml` | `pull_request` | `scripts/validate` + `kiso check` |
+| `.github/workflows/automerge.yml` | `pull_request` | arm auto-merge on PRs by the repo owner or the research agent |
 
 ## Repo layout
 
@@ -288,7 +289,7 @@ scripts/           kb (loaders), project (kb → build/okf + feed + frontpage.js
 build/             derived OKF bundle + feed + frontpage.json (gitignored; built in CI)
 site/              built site (gitignored; built in CI)
 docs/              this doc, ADRs
-.github/workflows/ ci, research, publish, validate
+.github/workflows/ ci, research, publish, validate, automerge
 ```
 
 ## Key decisions

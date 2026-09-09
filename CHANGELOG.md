@@ -107,6 +107,11 @@ knowledge base itself is an append-only event log with its own history in
   - 65 tests, all network calls (OpenRouter + feeds + article fetch) mocked/stubbed —
     consistent with the no-live-calls-in-CI rule used for `genui.copy`.
 
+### Changed
+- `.github/workflows/automerge.yml` — arms auto-merge (squash) on any PR opened by the
+  repo owner or the research agent, so a green `lint` + `test` merges with no click.
+  Draft PRs and external contributors' PRs are left alone.
+
 ### Fixed
 - `scripts/project` emitted a bare fuzzy `YYYY-MM` as a `log.md` heading, which Kiso
   rejects (`INVALID_LOG_DATE_FORMAT`) — this broke `publish.yml` on `main`. Log
