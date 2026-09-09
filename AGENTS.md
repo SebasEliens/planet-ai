@@ -21,11 +21,16 @@ give context and are largely projections of the event log.
 
 ## Rules for everyone
 
-- **Never push to `main`.** It is branch-protected. All changes land via pull request
-  with green CI (`lint` + `test`). No human approval is required to merge: `automerge.yml`
-  arms auto-merge on any PR opened by the repo owner or the research agent, so it merges
-  the moment CI is green. To hold one for review, open it as a draft or leave an
-  unresolved review comment. External contributors' PRs still need a hand merge.
+- **How changes land.**
+  - *Project development* (coding agents, the maintainer): trunk-based — commit straight
+    to `main`. Keep commits small and green (`ruff`, `mypy`, `pytest` before you push);
+    `ci.yml` runs on every push. Use a PR only when you want a second pair of eyes.
+  - *Runtime agents* (`research.yml`): **always** a pull request, even though it
+    auto-merges — the PR is the traceable, reviewable record of what the agent added.
+    `automerge.yml` arms auto-merge on PRs from the maintainer or `github-actions[bot]`
+    once CI is green; draft the PR or leave an unresolved comment to hold it.
+  - `main` is branch-protected (required checks `lint` + `test`, no required reviews);
+    the maintainer can push through it, outside contributors go through a PR.
 - **Stay in your lane.** A coding agent does not research or write `kb/` content; a
   runtime agent does not touch code, workflows, or dependencies.
 - **Attribution.** End commit messages with
@@ -73,13 +78,14 @@ Local wiki preview needs the Kiso CLI (Java 21): download `kiso-cli.jar` from
 
 - Target Python 3.13. Commit `uv.lock` with any dependency change. Add runtime deps
   deliberately (they run in CI on every scheduled job) — prefer the stdlib.
-- All of `ruff check`, `ruff format --check`, `mypy`, `pytest` must pass before a PR.
+- All of `ruff check`, `ruff format --check`, `mypy`, `pytest` must pass before you push.
 
 ### Workflow
 
-- Branch, commit small, open a PR. One logical change per PR.
+- Commit small, one logical change at a time, straight to `main` (see *How changes
+  land* above). Open a PR only when you want review.
 - When a change is notable, update [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]`) and
-  tick / add items in [TODO.md](TODO.md) in the same PR.
+  tick / add items in [TODO.md](TODO.md) in the same change.
 - Changing event/entity schema, the immutability rule, or the taxonomy shape means
   updating **together**: `scripts/kb.py` + `scripts/validate.py`, `docs/DESIGN.md`,
   this file, and any affected fixtures.

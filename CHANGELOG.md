@@ -108,9 +108,14 @@ knowledge base itself is an append-only event log with its own history in
     consistent with the no-live-calls-in-CI rule used for `genui.copy`.
 
 ### Changed
-- `.github/workflows/automerge.yml` — arms auto-merge (squash) on any PR opened by the
-  repo owner or the research agent, so a green `lint` + `test` merges with no click.
-  Draft PRs and external contributors' PRs are left alone.
+- **Trunk-based for project development.** Coding agents and the maintainer commit
+  straight to `main` (green locally first); a PR is now opt-in, for when review is
+  wanted. Runtime agents (`research.yml`) still always open a PR — auto-merged, but
+  kept as the traceable record of each run. `AGENTS.md` "How changes land" is the
+  authority.
+- `.github/workflows/automerge.yml` — arms auto-merge (squash) on any non-draft PR
+  opened by the repo owner or the research agent, so a green `lint` + `test` merges
+  with no click. Draft PRs and external contributors' PRs are left alone.
 
 ### Fixed
 - `scripts/project` emitted a bare fuzzy `YYYY-MM` as a `log.md` heading, which Kiso

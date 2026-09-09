@@ -266,7 +266,7 @@ the model's only job is filling copy slots.
 | File | Trigger | Does |
 |---|---|---|
 | `.github/workflows/ci.yml` | `push` to `main`, `pull_request` | ruff + mypy + pytest |
-| `.github/workflows/research.yml` | `schedule` (fortnightly: 1st & 15th), `workflow_dispatch` | run agent → open PR against `main`, auto-merge on green CI. Secrets: `OPENROUTER_API_KEY`, optional `PLANETAI_PR_TOKEN` |
+| `.github/workflows/research.yml` | `schedule` (fortnightly: 1st & 15th), `workflow_dispatch` | run agent → open PR against `main`, auto-merge on green CI. Secrets: `OPENROUTER_API_KEY`; `PLANETAI_PR_TOKEN` (needed for CI to run on the agent's PR, hence for auto-merge) |
 | `.github/workflows/publish.yml` | `push` to `main` (paths: `kb/**`, `genui/**`, `scripts/**`, `taxonomy.yaml`) | validate → project → `kiso build` → genui → deploy Pages |
 | `.github/workflows/validate.yml` | `pull_request` | `scripts/validate` + `kiso check` |
 | `.github/workflows/automerge.yml` | `pull_request` | arm auto-merge on PRs by the repo owner or the research agent |
