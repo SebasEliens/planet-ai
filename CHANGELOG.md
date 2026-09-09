@@ -107,6 +107,12 @@ knowledge base itself is an append-only event log with its own history in
   - 65 tests, all network calls (OpenRouter + feeds + article fetch) mocked/stubbed —
     consistent with the no-live-calls-in-CI rule used for `genui.copy`.
 
+### Fixed
+- `scripts/project` emitted a bare fuzzy `YYYY-MM` as a `log.md` heading, which Kiso
+  rejects (`INVALID_LOG_DATE_FORMAT`) — this broke `publish.yml` on `main`. Log
+  headings now use a new `Event.iso_date` (fuzzy months padded to the 1st); bullet
+  lists still show the date as recorded.
+
 ### Notes
 - Prior art surveyed: `langchain-ai/openwiki`, `oak-invest/kiso`,
   `GoogleCloudPlatform/knowledge-catalog` (OKF), `scaccogatto/okf-skills`,
