@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 {% import "_themes_strip.html" as strip %}
+{% import "_card_banner.html" as bm %}
 {% block content %}
+{% if copy.intro %}<p class="card-intro">{{ copy.intro }}</p>{% endif %}
 <p class="dek">{{ copy.dek }}</p>
 {% if copy.trends_note %}<p class="trends">{{ copy.trends_note }}</p>{% endif %}
 {{ strip.themes_strip(stats, copy) }}
 <div class="grid">
   {% for e in events %}
   <article class="card">
+    {{ bm.card_banner(e.kind, e.theme) }}
     <p class="meta">{{ e.date }} &middot; {{ e.kind }}</p>
     <h3 class="story-title"><a href="{{ e.href }}">{{ e.title }}</a></h3>
     {% if e.description %}<p>{{ e.description }}</p>{% endif %}

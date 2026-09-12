@@ -23,13 +23,14 @@ from scripts.frontpage import FrontpageStats
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "anthropic/claude-haiku-4-5"
 REQUEST_TIMEOUT_SECONDS = 30
-MAX_OUTPUT_TOKENS = 600
+MAX_OUTPUT_TOKENS = 850
 
 
 class Copy(BaseModel):
     kicker: str
     headline: str
     dek: str
+    intro: str = ""
     trends_note: str = ""
     theme_blurbs: dict[str, str] = Field(default_factory=dict)
 
@@ -44,10 +45,18 @@ def fallback_copy(stats: FrontpageStats, selection: Selection) -> Copy:
             trends_note="Browse the full log below while we keep watching.",
         )
     lead = stats.recent_events[0]
+    n = len(stats.recent_events)
+    active_labels = [t.label for t in stats.theme_activity if t.count_window > 0]
+    themes_str = ", ".join(active_labels) if active_labels else "tracked themes"
+    intro = (
+        f"The last {stats.window_days} days brought {n} new event{'s' if n != 1 else ''}"
+        f" across {themes_str}."
+    )
     return Copy(
         kicker="Recent developments",
         headline=lead.title,
         dek=lead.description or "The latest tracked developments across our themes.",
+        intro=intro,
         theme_blurbs={t.id: "" for t in stats.theme_activity if t.count_window > 0},
     )
 
@@ -87,8 +96,10 @@ def _prompt(stats: FrontpageStats, selection: Selection) -> str:
         '  "kicker": short eyebrow label, at most 8 words\n'
         '  "headline": front-page headline for the lead story (or the period, if quiet), '
         "at most 15 words\n"
-        '  "dek": one-sentence subhead, at most 30 words\n'
-        '  "trends_note": 1-2 sentence synthesis of what to watch, at most 60 words, or '
+        '  "dek": one-sentence subhead for the lead story, at most 30 words\n'
+        '  "intro": 2-4 sentence editorial overview of this period as a whole — synthesise '
+        "across all events and themes, do not just restate the lead story, at most 80 words\n"
+        '  "trends_note": 1-2 sentence synthesis of what to watch next, at most 60 words, or '
         '"" if there is nothing to add\n'
         '  "theme_blurbs": object mapping theme id -> one-sentence blurb, only for themes '
         "present in theme_activity below\n\n"

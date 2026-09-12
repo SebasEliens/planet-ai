@@ -25,7 +25,7 @@ REPO_URL = "https://github.com/SebasEliens/planet-ai"
 LAYOUTS_DIR = Path(__file__).parent / "layouts"
 OUT = REPO_ROOT / "site" / "index.html"
 
-_TRUNCATE_LIMITS = {"kicker": 80, "headline": 160, "dek": 260, "trends_note": 420}
+_TRUNCATE_LIMITS = {"kicker": 80, "headline": 160, "dek": 260, "intro": 560, "trends_note": 420}
 
 
 def _href(rel: str) -> str:
@@ -39,6 +39,7 @@ def _event_view(e: EventBrief) -> dict[str, Any]:
         "kind": e.kind,
         "description": e.description,
         "href": _href(e.rel),
+        "theme": e.themes[0] if e.themes else "neutral",
     }
 
 
@@ -56,6 +57,7 @@ def _copy_context(cp: copy_mod.Copy) -> dict[str, Any]:
         "kicker": _truncate(cp.kicker, _TRUNCATE_LIMITS["kicker"]) or "PlanetAI",
         "headline": _truncate(cp.headline, _TRUNCATE_LIMITS["headline"]) or "PlanetAI",
         "dek": _truncate(cp.dek, _TRUNCATE_LIMITS["dek"]),
+        "intro": _truncate(cp.intro, _TRUNCATE_LIMITS["intro"]),
         "trends_note": _truncate(cp.trends_note, _TRUNCATE_LIMITS["trends_note"]),
         "theme_blurbs": cp.theme_blurbs,
     }

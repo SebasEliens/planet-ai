@@ -48,7 +48,23 @@
   .tagline { color: var(--muted); margin: .55rem 0 0; font-size: .95rem; max-width: 34rem; }
   main { padding: 2.25rem 0 1rem; }
   .card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
-    padding: 1.2rem 1.35rem; }
+    padding: 1.2rem 1.35rem; overflow: hidden; }
+  .card-banner {
+    margin: -1.2rem -1.35rem 1.1rem; height: 5rem;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #e6ebe3, #d2dccf); color: #4b6b60; }
+  .card-banner[data-theme="climate-justice"] { background: linear-gradient(135deg, #e5f1ea, #c9e4d5); color: #1f7a4d; }
+  .card-banner[data-theme="ai-human-rights"] { background: linear-gradient(135deg, #f5e8e4, #f0d5cb); color: #a4402a; }
+  .card-banner[data-theme="livable-planet"]  { background: linear-gradient(135deg, #e3eef1, #c5dde6); color: #1a6e8c; }
+  .card-banner[data-theme="ai-governance"]   { background: linear-gradient(135deg, #ece6f3, #d8ccea); color: #6b4fa0; }
+  @media (prefers-color-scheme: dark) {
+    .card-banner { background: linear-gradient(135deg, #1c2620, #131f17); color: #86ab9d; }
+    .card-banner[data-theme="climate-justice"] { background: linear-gradient(135deg, #17261e, #0f1e17); color: #5cbf8f; }
+    .card-banner[data-theme="ai-human-rights"] { background: linear-gradient(135deg, #2a1c17, #1e130f); color: #dd8067; }
+    .card-banner[data-theme="livable-planet"]  { background: linear-gradient(135deg, #142228, #0d1a1f); color: #6bc4de; }
+    .card-banner[data-theme="ai-governance"]   { background: linear-gradient(135deg, #211a2a, #18131f); color: #b49bda; }
+  }
+  .card-intro { font-size: 1.05rem; margin: 1.35rem 0; max-width: 42rem; line-height: 1.65; }
   .story-title { margin: .3rem 0; line-height: 1.3; font-family: var(--font-serif); font-weight: 600;
     color: var(--ink); }
   .story-title a { color: inherit; text-decoration: none; }

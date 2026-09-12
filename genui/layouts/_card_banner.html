@@ -1,0 +1,60 @@
+{% macro card_banner(kind, theme) %}
+<div class="card-banner" data-theme="{{ theme }}" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="38" height="38" class="card-banner-icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    {% if kind == "news" %}
+    <rect x="3" y="5" width="18" height="14" rx="1.5"/>
+    <line x1="7" y1="9" x2="17" y2="9"/>
+    <line x1="7" y1="12.5" x2="17" y2="12.5"/>
+    <line x1="7" y1="16" x2="13" y2="16"/>
+    {% elif kind == "paper" %}
+    <path d="M6 2h8l4 4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/>
+    <line x1="9" y1="10" x2="15" y2="10"/>
+    <line x1="9" y1="13" x2="15" y2="13"/>
+    <line x1="9" y1="16" x2="12" y2="16"/>
+    {% elif kind == "report" %}
+    <path d="M6 2h8l4 4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/>
+    <line x1="9" y1="10" x2="15" y2="10"/>
+    <polyline points="9,17 11,14 13,16 15,12"/>
+    {% elif kind == "funding" %}
+    <polygon points="12,3 21,12 12,21 3,12"/>
+    <line x1="12" y1="8" x2="12" y2="16"/>
+    <line x1="9" y1="12" x2="15" y2="12"/>
+    {% elif kind == "policy" %}
+    <line x1="12" y1="3" x2="12" y2="20"/>
+    <line x1="4" y1="20" x2="20" y2="20"/>
+    <path d="M5 11l3-7 3 7a3 3 0 0 1-6 0z"/>
+    <path d="M13 11l3-7 3 7a3 3 0 0 1-6 0z"/>
+    {% elif kind == "project-launch" %}
+    <path d="M12 20v-9"/>
+    <path d="M5 13l7-10 7 10"/>
+    <circle cx="12" cy="20" r="2"/>
+    {% elif kind == "project-update" %}
+    <path d="M21 12a9 9 0 1 1-9-9 9.74 9.74 0 0 1 6.74 2.74L21 8"/>
+    <path d="M21 3v5h-5"/>
+    {% elif kind == "dataset" %}
+    <rect x="3" y="3" width="7" height="7" rx="1"/>
+    <rect x="14" y="3" width="7" height="7" rx="1"/>
+    <rect x="3" y="14" width="7" height="7" rx="1"/>
+    <rect x="14" y="14" width="7" height="7" rx="1"/>
+    {% elif kind == "legal" %}
+    <line x1="4" y1="20" x2="11" y2="13"/>
+    <rect x="11" y="6.5" width="8" height="4" rx="1" transform="rotate(-45 15 8.5)"/>
+    <line x1="4" y1="20" x2="20" y2="20"/>
+    {% elif kind == "job-openings" %}
+    <rect x="2" y="9" width="20" height="12" rx="2"/>
+    <path d="M8 9V7a4 4 0 0 1 8 0v2"/>
+    <line x1="12" y1="14" x2="12" y2="16"/>
+    {% elif kind == "event" %}
+    <rect x="3" y="5" width="18" height="16" rx="2"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+    <line x1="8" y1="3" x2="8" y2="7"/>
+    <line x1="16" y1="3" x2="16" y2="7"/>
+    {% else %}
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M12 3a16 16 0 0 1 0 18"/>
+    <path d="M12 3a16 16 0 0 0 0 18"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    {% endif %}
+  </svg>
+</div>
+{% endmacro %}
